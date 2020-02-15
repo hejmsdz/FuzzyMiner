@@ -2,6 +2,7 @@ package com.mrozwadowski.fuzzyminer
 
 import com.mrozwadowski.fuzzyminer.data.log.Log
 import com.mrozwadowski.fuzzyminer.input.CSV
+import com.mrozwadowski.fuzzyminer.mining.DumbMiner
 import java.io.File
 import java.io.IOException
 import kotlin.system.exitProcess
@@ -22,5 +23,5 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
-    println(log)
+    val graph = DumbMiner(log).mine()
 }
