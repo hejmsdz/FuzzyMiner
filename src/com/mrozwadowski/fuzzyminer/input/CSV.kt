@@ -19,24 +19,20 @@ class CSV(private val file: File) {
     }
 
     private fun readFile() {
-        var headersRead = false
-        file.forEachLine { line ->
-            val fields = line.split(",")
-            if (!headersRead) {
-                readHeaders(fields)
-                headersRead = true
-            } else {
-                readActivity(fields)
-            }
-        }
+        val reader = file.bufferedReader()
+        readHeaders(reader.readLine())
+        reader.forEachLine { readEvent(it) }
+        reader.close()
     }
 
-    private fun readHeaders(fields: List<String>) {
+    private fun readHeaders(line: String) {
+        val fields = line.split(",")
         traceIdColumn = fields.indexOf("Case ID")
         activityColumn = fields.indexOf("Activity")
     }
 
-    private fun readActivity(fields: List<String>) {
+    private fun readEvent(line: String) {
+        val fields = line.split(",")
         val traceId = fields[traceIdColumn]
         val activityName = fields[activityColumn]
 
