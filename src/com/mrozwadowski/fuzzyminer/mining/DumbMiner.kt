@@ -8,7 +8,7 @@ import com.mrozwadowski.fuzzyminer.data.log.Log
 
 class DumbMiner(private val log: Log) {
     fun mine(): Graph {
-        val nodes = log.activities.associateWith { Node(it.name) }
+        val nodes = log.activities.associateWith { Node(it.name, it.id) }
         val edges = findSuccessions().keys
             .groupBy { it.first }
             .map { nodes[it.key]!! to it.value.map { Edge(nodes[it.second]!!) } }
