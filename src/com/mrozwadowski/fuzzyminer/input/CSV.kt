@@ -9,9 +9,9 @@ import java.io.File
 class CSV(private val file: File) {
     private var traceIdColumn: Int = -1
     private var activityColumn: Int = -1
-    private var activities = HashMap<String, Activity>();
-    private var traces = HashMap<String, ArrayList<Event>>();
-    private var nextActivityId: Int = 0;
+    private var nextActivityId: Int = 0
+    private val activities = mutableMapOf<String, Activity>()
+    private val traces = mutableMapOf<String, MutableList<Event>>()
 
     fun readLog() : Log {
         readFile()
@@ -41,7 +41,7 @@ class CSV(private val file: File) {
         val activityName = fields[activityColumn]
 
         val activity = activities.getOrPut(activityName, { Activity(activityName, nextActivityId++) })
-        val trace = traces.getOrPut(traceId, { arrayListOf() })
+        val trace = traces.getOrPut(traceId, { mutableListOf() })
         val event = Event(activity)
         trace.add(event)
     }
