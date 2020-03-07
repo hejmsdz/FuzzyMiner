@@ -3,15 +3,17 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
-import com.mrozwadowski.fuzzyminer.data.log.Event
-import com.mrozwadowski.fuzzyminer.data.log.Log
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinarySignificanceMetric
+import java.util.logging.Level
+import java.util.logging.Logger
 import kotlin.math.abs
 
 class ConflictResolver<EventClass>(
     private val graph: Graph<EventClass>,
     private val binSignificance: BinarySignificanceMetric<EventClass>
 ) {
+    private val logger = Logger.getLogger(javaClass.name)
+
     fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double): Graph<EventClass> {
         val allEdges = graph.allEdges()
 
@@ -21,22 +23,21 @@ class ConflictResolver<EventClass>(
             val ba = relativeSignificance(b.eventClass, a.eventClass)
             val offset = abs(ab - ba)
 
-            println("$ab $ba $offset")
-
+            logger.log(Level.FINER, "Rel. significance: $ab, $ba")
             if (ab >= preserveThreshold && ba >= preserveThreshold) {
-                println("$a <> $b 2-loop")
+                logger.log(Level.FINE, "'$a' and '$b' form a loop")
                 listOf()  // 2-loop, keep both edges
             } else if (offset >= ratioThreshold) {
                 // exception, remove less significant edge
                 if (ab > ba) {
-                    println("$b > $a exceptional")
+                    logger.log(Level.FINE, "'$b' following '$a' is an exception")
                     listOf(b to a)
                 } else {
-                    println("$a > $b exceptional")
+                    logger.log(Level.FINE, "'$a' following '$b' is an exception")
                     listOf(a to b)
                 }
             } else {
-                println("$a <> $b concurrency")
+                logger.log(Level.FINE, "'$a' and '$b' are concurrent")
                 listOf(a to b, b to a) // concurrency, remove both edges
             }
         }
