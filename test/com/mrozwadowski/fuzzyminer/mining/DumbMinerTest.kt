@@ -28,15 +28,14 @@ internal class DumbMinerTest {
         val nodeC = graph.nodes.find { it.name == c.name }!!
         val nodeD = graph.nodes.find { it.name == d.name }!!
 
-        assertEquals(3, graph.edges.size)
-        assertEquals(2, graph.edges[nodeA]?.size)
-        assertEquals(1, graph.edges[nodeB]?.size)
-        assertEquals(1, graph.edges[nodeC]?.size)
-        assertNotNull(graph.edges[nodeA]?.find { it.target == nodeB })
-        assertNotNull(graph.edges[nodeA]?.find { it.target == nodeC })
-        assertNotNull(graph.edges[nodeB]?.find { it.target == nodeD })
-        assertNotNull(graph.edges[nodeC]?.find { it.target == nodeD })
-
-        println(graph.edges)
+        assertEquals(4, graph.allEdges().size)
+        assertEquals(2, graph.edgesFrom(nodeA).size)
+        assertEquals(1, graph.edgesFrom(nodeB).size)
+        assertEquals(1, graph.edgesFrom(nodeC).size)
+        assertEquals(0, graph.edgesFrom(nodeD).size)
+        assertNotNull(graph.edgeBetween(nodeA, nodeB))
+        assertNotNull(graph.edgeBetween(nodeA, nodeC))
+        assertNotNull(graph.edgeBetween(nodeB, nodeD))
+        assertNotNull(graph.edgeBetween(nodeC, nodeD))
     }
 }

@@ -10,14 +10,10 @@ class Dot(private val graph: Graph) {
         graph.nodes.forEach { node ->
             out.appendln("  ${node.id} [label=\"${node.name}\"]")
         }
-        graph.edges.forEach { (sourceNode, edges) ->
-            edges.forEach { edge ->
-                out.appendln("  ${sourceNode.id} -> ${edge.target.id}")
-            }
+        graph.allEdges().forEach { (source, target) ->
+            out.appendln("  ${source.id} -> ${target.id}")
         }
         out.appendln("}")
         return out.toString()
     }
-
-
 }
