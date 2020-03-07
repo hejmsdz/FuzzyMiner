@@ -16,8 +16,7 @@ internal class DumbMinerTest {
         Trace(listOf(Event(a), Event(b), Event(d))),
         Trace(listOf(Event(a), Event(c), Event(d)))
     ))
-
-    private val miner = DumbMiner(log)
+    private val miner = DumbMiner(log, Event::activity)
 
     @Test
     fun mine() {

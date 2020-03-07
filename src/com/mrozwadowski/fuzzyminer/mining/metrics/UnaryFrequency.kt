@@ -1,17 +1,21 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
+import com.mrozwadowski.fuzzyminer.classifiers.Classifier
 import com.mrozwadowski.fuzzyminer.data.log.Activity
 import com.mrozwadowski.fuzzyminer.data.log.Log
 
-class UnaryFrequency(log: Log): UnarySignificanceMetric(log) {
-    private val values = mutableMapOf<Activity, Int>()
+class UnaryFrequency<EventClass>(
+    log: Log,
+    classifier: Classifier<EventClass>
+): UnarySignificanceMetric<EventClass>(log, classifier) {
+    private val values = mutableMapOf<EventClass, Int>()
 
     init {
         log.traces
             .flatMap { it.events }
-            .groupingBy { it.activity }
+            .groupingBy(classifier)
             .eachCountTo(values)
     }
 
-    override fun calculate(activity: Activity): Number = values.getOrDefault(activity, 0)
+    override fun calculate(eventClass: EventClass): Number = values.getOrDefault(eventClass, 0)
 }

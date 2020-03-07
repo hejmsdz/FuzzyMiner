@@ -24,6 +24,6 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
-    val graph = DumbMiner(log).mine()
+    val graph = DumbMiner(log) { it.activity }.mine()
     print(Dot(graph))
 }
