@@ -1,13 +1,12 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import com.mrozwadowski.fuzzyminer.classifiers.Classifier
-import com.mrozwadowski.fuzzyminer.data.log.Activity
 import com.mrozwadowski.fuzzyminer.data.log.Log
 
 class UnaryFrequency<EventClass>(
-    log: Log,
-    classifier: Classifier<EventClass>
-): UnarySignificanceMetric<EventClass>(log, classifier) {
+    private val log: Log,
+    private val classifier: Classifier<EventClass>
+): UnarySignificanceMetric<EventClass>() {
     private val values = mutableMapOf<EventClass, Int>()
 
     init {

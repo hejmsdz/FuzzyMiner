@@ -4,9 +4,9 @@ import com.mrozwadowski.fuzzyminer.classifiers.Classifier
 import com.mrozwadowski.fuzzyminer.data.log.Log
 
 class BinaryFrequency<EventClass>(
-    log: Log,
-    classifier: Classifier<EventClass>
-): BinarySignificanceMetric<EventClass>(log, classifier) {
+    private val log: Log,
+    private val classifier: Classifier<EventClass>
+): BinarySignificanceMetric<EventClass>() {
     private val values = mutableMapOf<Pair<EventClass, EventClass>, Int>()
 
     init {
