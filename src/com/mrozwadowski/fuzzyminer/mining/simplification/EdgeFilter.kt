@@ -12,7 +12,6 @@ class EdgeFilter<EventClass>(
     private val binCorrelation: BinaryCorrelationMetric<EventClass>
 ) {
     fun filterEdges(utilityRatio: Double, cutoff: Double): Graph<EventClass> {
-        val allEdges = graph.allEdges()
         val edgesToRemove = graph.nodes
             .map { it to graph.edgesFrom(it) }
             .filterNot { (_, edges) -> edges.isEmpty() }
@@ -23,11 +22,7 @@ class EdgeFilter<EventClass>(
                     .map { source to it.target }
         }
 
-        val preservedEdges = (allEdges - edgesToRemove)
-            .groupBy { it.first }
-            .mapValues { it.value.map { (_, target) -> Edge(target) } }
-
-        return Graph(graph.nodes, preservedEdges)
+        return graph.withoutEdges(edgesToRemove)
     }
 
     fun relativeUtilities(source: Node<EventClass>, edges: Collection<Edge<EventClass>>, utilityRatio: Double): Map<Edge<EventClass>, Double> {

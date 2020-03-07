@@ -21,4 +21,12 @@ data class Graph<EventClass>(
             edgesFromA.map { source to it.target }
         }
     }
+
+    fun withoutEdges(edgesToRemove: Collection<Pair<Node<EventClass>, Node<EventClass>>>): Graph<EventClass> {
+        val preservedEdges = (allEdges() - edgesToRemove)
+            .groupBy { it.first }
+            .mapValues { it.value.map { (_, target) -> Edge(target) } }
+
+        return Graph(nodes, preservedEdges)
+    }
 }

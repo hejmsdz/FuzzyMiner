@@ -15,8 +15,6 @@ class ConflictResolver<EventClass>(
     private val logger = Logger.getLogger(javaClass.name)
 
     fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double): Graph<EventClass> {
-        val allEdges = graph.allEdges()
-
         val conflicts = conflictedPairs()
         val edgesToRemove = conflicts.flatMap { (a, b) ->
             val ab = relativeSignificance(a.eventClass, b.eventClass)
@@ -42,11 +40,7 @@ class ConflictResolver<EventClass>(
             }
         }
 
-        val preservedEdges = (allEdges - edgesToRemove)
-            .groupBy { it.first }
-            .mapValues { it.value.map { (_, target) -> Edge(target) } }
-
-        return Graph(graph.nodes, preservedEdges)
+        return graph.withoutEdges(edgesToRemove)
     }
 
     private fun conflictedPairs(): Collection<Pair<Node<EventClass>, Node<EventClass>>> {
