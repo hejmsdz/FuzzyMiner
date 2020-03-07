@@ -24,8 +24,7 @@ internal class ConflictResolverTest {
 
     @Test
     fun findConflicts() {
-        val resolver = ConflictResolver(graph)
-        val conflicts = resolver.findConflicts()
+        val conflicts = findConflicts(graph)
 
         assertEquals(2, conflicts.size)
         assertTrue(setOf(a, d) in conflicts)
