@@ -8,13 +8,13 @@ import com.mrozwadowski.fuzzyminer.mining.simplification.ConflictResolver
 
 class FuzzyMiner<EventClass>(private val log: Log, private val classifier: Classifier<EventClass>) {
     private val binarySignificance = BinaryFrequency(log, classifier)
-    private val preserveThreshold = 0.5
-    private val ratioThreshold = 0.5
+    private val preserveThreshold = 0.2
+    private val ratioThreshold = 0.05
 
     fun mine(): Graph<EventClass> {
-        val graph = DumbMiner(log, classifier).mine()
+        var graph = DumbMiner(log, classifier).mine()
         val cr = ConflictResolver(graph, binarySignificance)
-        cr.resolveConflicts(preserveThreshold, ratioThreshold)
+        graph = cr.resolveConflicts(preserveThreshold, ratioThreshold)
         return graph
     }
 }

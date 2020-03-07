@@ -1,5 +1,6 @@
 package com.mrozwadowski.fuzzyminer.mining.simplification
 
+import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.data.log.Event
@@ -11,34 +12,47 @@ class ConflictResolver<EventClass>(
     private val graph: Graph<EventClass>,
     private val binSignificance: BinarySignificanceMetric<EventClass>
 ) {
-    fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double) {
+    fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double): Graph<EventClass> {
+        val allEdges = graph.allEdges()
+
         val conflicts = conflictedPairs()
-        conflicts.forEach { (a, b) ->
-            val ab = relativeSignificance(a, b)
-            val ba = relativeSignificance(b, a)
+        val edgesToRemove = conflicts.flatMap { (a, b) ->
+            val ab = relativeSignificance(a.eventClass, b.eventClass)
+            val ba = relativeSignificance(b.eventClass, a.eventClass)
             val offset = abs(ab - ba)
+
+            println("$ab $ba $offset")
+
             if (ab >= preserveThreshold && ba >= preserveThreshold) {
-                println("$a -> $b 2-loop")
-                // keep both edges
+                println("$a <> $b 2-loop")
+                listOf()  // 2-loop, keep both edges
             } else if (offset >= ratioThreshold) {
+                // exception, remove less significant edge
                 if (ab > ba) {
-                    println("$b -> $a exception")
+                    println("$b > $a exceptional")
+                    listOf(b to a)
                 } else {
-                    println("$a -> $b exception")
+                    println("$a > $b exceptional")
+                    listOf(a to b)
                 }
-                // remove less significant edge
             } else {
-                println("$a || $b concurrency")
-                // remove both edges
+                println("$a <> $b concurrency")
+                listOf(a to b, b to a) // concurrency, remove both edges
             }
         }
+
+        val preservedEdges = (allEdges - edgesToRemove)
+            .groupBy { it.first }
+            .mapValues { it.value.map { (_, target) -> Edge(target) } }
+
+        return Graph(graph.nodes, preservedEdges)
     }
 
-    private fun conflictedPairs(): Collection<Pair<EventClass, EventClass>> {
+    private fun conflictedPairs(): Collection<Pair<Node<EventClass>, Node<EventClass>>> {
         return findConflicts(graph).map { set ->
             assert(set.size == 2)
             val (first, second) = set.toList()
-            first.eventClass to second.eventClass
+            first to second
         }
     }
 
@@ -51,7 +65,7 @@ class ConflictResolver<EventClass>(
     }
 }
 
-fun <EventClass>findConflicts(graph: Graph<EventClass>): Collection<Set<Node<EventClass>>> {
+fun <EventClass>findConflicts(graph: Graph<EventClass>): Set<Set<Node<EventClass>>> {
     return graph.nodes.flatMap { source ->
         graph.edgesFrom(source)
             .filter { edge -> graph.edgeBetween(edge.target, source) != null && edge.target != source }
