@@ -3,6 +3,7 @@ package com.mrozwadowski.fuzzyminer
 import com.mrozwadowski.fuzzyminer.data.log.Log
 import com.mrozwadowski.fuzzyminer.input.CSV
 import com.mrozwadowski.fuzzyminer.mining.DumbMiner
+import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.output.Dot
 import java.io.File
 import java.io.IOException
@@ -24,6 +25,6 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
-    val graph = DumbMiner(log) { it.activity }.mine()
+    val graph = FuzzyMiner(log) { it.activity }.mine()
     print(Dot(graph))
 }
