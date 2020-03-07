@@ -18,4 +18,6 @@ class BinaryFrequency(log: Log): BinarySignificanceMetric(log) {
     override fun calculate(activity1: Activity, activity2: Activity): Number {
         return values.getOrDefault(activity1 to activity2, 0)
     }
+
+    fun allPairs() = values.keys
 }
