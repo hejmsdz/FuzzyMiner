@@ -3,8 +3,8 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 
-class ConflictResolver(private val graph: Graph) {
-    fun findConflicts(): Collection<Set<Node>> {
+class ConflictResolver<EventClass>(private val graph: Graph<EventClass>) {
+    fun findConflicts(): Collection<Set<Node<EventClass>>> {
         return graph.nodes.flatMap { source ->
             graph.edgesFrom(source)
                 .filter { edge -> graph.edgeBetween(edge.target, source) != null }

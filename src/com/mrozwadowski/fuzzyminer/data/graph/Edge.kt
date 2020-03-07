@@ -1,3 +1,3 @@
 package com.mrozwadowski.fuzzyminer.data.graph
 
-data class Edge(val target: Node)
+data class Edge<EventClass>(val target: Node<EventClass>)

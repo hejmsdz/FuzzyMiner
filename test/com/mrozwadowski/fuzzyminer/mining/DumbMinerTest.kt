@@ -22,10 +22,10 @@ internal class DumbMinerTest {
     fun mine() {
         val graph = miner.mine()
         assertEquals(4, graph.nodes.size)
-        val nodeA = graph.nodes.find { it.name == a.name }!!
-        val nodeB = graph.nodes.find { it.name == b.name }!!
-        val nodeC = graph.nodes.find { it.name == c.name }!!
-        val nodeD = graph.nodes.find { it.name == d.name }!!
+        val nodeA = graph.nodes.find { it.eventClass == a }!!
+        val nodeB = graph.nodes.find { it.eventClass == b }!!
+        val nodeC = graph.nodes.find { it.eventClass == c }!!
+        val nodeD = graph.nodes.find { it.eventClass == d }!!
 
         assertEquals(4, graph.allEdges().size)
         assertEquals(2, graph.edgesFrom(nodeA).size)

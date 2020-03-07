@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     }
     val path = args[0]
 
-    var log: Log
+    val log: Log
     try {
         val file = File(path)
         log = CSV(file).readLog()
