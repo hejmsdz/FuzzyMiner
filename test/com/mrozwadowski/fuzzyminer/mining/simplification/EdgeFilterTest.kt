@@ -31,7 +31,7 @@ internal class EdgeFilterTest {
 
     private class MockCorrelation: BinaryCorrelationMetric<Activity>() {
         val values = mapOf("p" to 1.0, "q" to 0.2, "r" to 0.8, "s" to 0.3)
-        override fun calculate(class1: Activity, class2: Activity): Number {
+        override fun calculate(class1: Activity, class2: Activity): Double {
             assert(class1.name == "a")
             return values.getOrDefault(class2.name, 0.0)
         }
