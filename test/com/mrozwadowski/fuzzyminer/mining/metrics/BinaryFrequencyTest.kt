@@ -22,10 +22,10 @@ internal class BinaryFrequencyTest {
     @Test
     fun calculate() {
         val metric = BinaryFrequency(log, Event::activity)
-        assertEquals(2, metric.calculate(a, b))
-        assertEquals(1, metric.calculate(a, c))
-        assertEquals(2, metric.calculate(b, b))
-        assertEquals(2, metric.calculate(b, d))
-        assertEquals(0, metric.calculate(a, d))
+        assertEquals(1.0, metric.calculate(a, b))
+        assertEquals(0.5, metric.calculate(a, c))
+        assertEquals(1.0, metric.calculate(b, b))
+        assertEquals(1.0, metric.calculate(b, d))
+        assertEquals(0.0, metric.calculate(a, d))
     }
 }

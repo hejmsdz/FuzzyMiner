@@ -22,10 +22,10 @@ internal class UnaryFrequencyTest {
     @Test
     fun calculate() {
         val metric = UnaryFrequency(log, Event::activity)
-        assertEquals(3, metric.calculate(a))
-        assertEquals(4, metric.calculate(b))
-        assertEquals(1, metric.calculate(c))
-        assertEquals(2, metric.calculate(d))
-        assertEquals(0, metric.calculate(e))
+        assertEquals(0.75, metric.calculate(a))
+        assertEquals(1.0, metric.calculate(b))
+        assertEquals(0.25, metric.calculate(c))
+        assertEquals(0.5, metric.calculate(d))
+        assertEquals(0.0, metric.calculate(e))
     }
 }

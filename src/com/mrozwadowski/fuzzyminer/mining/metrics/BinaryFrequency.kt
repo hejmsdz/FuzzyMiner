@@ -8,6 +8,7 @@ class BinaryFrequency<EventClass>(
     private val classifier: Classifier<EventClass>
 ): BinarySignificanceMetric<EventClass>() {
     private val values = mutableMapOf<Pair<EventClass, EventClass>, Int>()
+    private var max = 0.0
 
     init {
         log.traces.forEach { trace ->
@@ -16,10 +17,11 @@ class BinaryFrequency<EventClass>(
                 .groupingBy { it }
                 .eachCountTo(values)
         }
+        max = values.values.max()?.toDouble() ?: 1.0
     }
 
-    override fun calculate(class1: EventClass, class2: EventClass): Number {
-        return values.getOrDefault(class1 to class2, 0)
+    override fun calculate(class1: EventClass, class2: EventClass): Double {
+        return values.getOrDefault(class1 to class2, 0) / max
     }
 
     fun allPairs() = values.keys
