@@ -13,7 +13,6 @@ internal class BinaryFrequencyTest {
     private val b = Activity("b", 1)
     private val c = Activity("c", 2)
     private val d = Activity("d", 3)
-    private val e = Activity("e", 4)
     private val log = Log(listOf(
         Trace(listOf(Event(a), Event(b), Event(d))),
         Trace(listOf(Event(a), Event(c))),
