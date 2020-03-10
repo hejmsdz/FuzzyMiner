@@ -15,10 +15,10 @@ internal class ConflictResolverTest {
     private val graph = Graph(
         listOf(a, b, c, d),
         mapOf(
-            a to listOf(Edge(b), Edge(d)),
-            b to listOf(Edge(c)),
-            c to listOf(Edge(b), Edge(d)),
-            d to listOf(Edge(a))
+            a to listOf(Edge(a, b), Edge(a, d)),
+            b to listOf(Edge(b, c)),
+            c to listOf(Edge(c, b), Edge(c, d)),
+            d to listOf(Edge(d, a))
         )
     )
 

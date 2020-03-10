@@ -31,7 +31,7 @@ open class DumbMiner<EventClass>(
             val sourceNode = activitiesToNodes.getValue(source)
             val targetNode = activitiesToNodes.getValue(target)
             val edgesForNode = edges.getOrPut(sourceNode, { mutableListOf() })
-            edgesForNode.add(Edge(targetNode))
+            edgesForNode.add(Edge(sourceNode, targetNode))
         }
         return edges
     }

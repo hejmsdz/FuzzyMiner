@@ -18,14 +18,14 @@ internal class EdgeFilterTest {
     val s = Node(Activity("s", 5), 5)
     val graph = Graph(
         listOf(a, p, q, r, s),
-        mapOf(a to listOf(Edge(p), Edge(q), Edge(r), Edge(s)))
+        mapOf(a to listOf(Edge(a, p), Edge(a, q), Edge(a, r), Edge(a, s)))
     )
 
     private class MockSignificance: BinarySignificanceMetric<Activity>() {
         val values = mapOf("p" to 1.0, "q" to 0.9, "r" to 0.7, "s" to 0.5)
-        override fun calculate(class1: Activity, class2: Activity): Number {
+        override fun calculate(class1: Activity, class2: Activity): Double {
             assert(class1.name == "a")
-            return values.getOrDefault(class2.name, 0)
+            return values.getOrDefault(class2.name, 0.0)
         }
     }
 
@@ -33,7 +33,7 @@ internal class EdgeFilterTest {
         val values = mapOf("p" to 1.0, "q" to 0.2, "r" to 0.8, "s" to 0.3)
         override fun calculate(class1: Activity, class2: Activity): Number {
             assert(class1.name == "a")
-            return values.getOrDefault(class2.name, 0)
+            return values.getOrDefault(class2.name, 0.0)
         }
     }
 
@@ -44,10 +44,10 @@ internal class EdgeFilterTest {
     @Test
     fun relativeUtilities() {
         val relativeUtilities = edgeFilter.relativeUtilities(a, graph.edgesFrom(a), utilityRatio)
-        assertEquals(1.000, relativeUtilities[Edge(p)]!!, 0.001)
-        assertEquals(0.250, relativeUtilities[Edge(q)]!!, 0.001)
-        assertEquals(0.583, relativeUtilities[Edge(r)]!!, 0.001)
-        assertEquals(0.000, relativeUtilities[Edge(s)]!!, 0.001)
+        assertEquals(1.000, relativeUtilities[Edge(a, p)]!!, 0.001)
+        assertEquals(0.250, relativeUtilities[Edge(a, q)]!!, 0.001)
+        assertEquals(0.583, relativeUtilities[Edge(a, r)]!!, 0.001)
+        assertEquals(0.000, relativeUtilities[Edge(a, s)]!!, 0.001)
     }
 
     @Test
