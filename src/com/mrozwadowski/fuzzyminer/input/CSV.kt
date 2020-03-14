@@ -6,14 +6,14 @@ import com.mrozwadowski.fuzzyminer.data.log.Log
 import com.mrozwadowski.fuzzyminer.data.log.Trace
 import java.io.File
 
-class CSV(private val file: File) {
+class CSV(file: File): LogReader(file) {
     private var traceIdColumn: Int = -1
     private var activityColumn: Int = -1
     private var nextActivityId: Int = 0
     private val activities = mutableMapOf<String, Activity>()
     private val traces = mutableMapOf<String, MutableList<Event>>()
 
-    fun readLog() : Log {
+    override fun readLog(): Log {
         readFile()
         return Log(traces.values.map { Trace(it) })
     }

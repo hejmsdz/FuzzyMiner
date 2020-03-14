@@ -1,8 +1,7 @@
 package com.mrozwadowski.fuzzyminer
 
 import com.mrozwadowski.fuzzyminer.data.log.Log
-import com.mrozwadowski.fuzzyminer.input.CSV
-import com.mrozwadowski.fuzzyminer.mining.DumbMiner
+import com.mrozwadowski.fuzzyminer.input.getLogReader
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.output.Dot
 import java.io.File
@@ -19,9 +18,9 @@ fun main(args: Array<String>) {
     val log: Log
     try {
         val file = File(path)
-        log = CSV(file).readLog()
+        log = getLogReader(file).readLog()
     } catch (e: IOException) {
-        System.err.println("Failed to open $path for reading")
+        System.err.println("Failed to open $path for reading: ${e.message}.")
         exitProcess(1)
     }
 
