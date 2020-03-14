@@ -1,31 +1,22 @@
 package com.mrozwadowski.fuzzyminer.mining
 
-import com.mrozwadowski.fuzzyminer.data.log.Activity
-import com.mrozwadowski.fuzzyminer.data.log.Event
-import com.mrozwadowski.fuzzyminer.data.log.Log
-import com.mrozwadowski.fuzzyminer.data.log.Trace
+import com.mrozwadowski.fuzzyminer.conceptName
+import com.mrozwadowski.fuzzyminer.createSimpleLog
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 internal class DumbMinerTest {
-    private val a = Activity("a", 0)
-    private val b = Activity("b", 1)
-    private val c = Activity("c", 2)
-    private val d = Activity("d", 3)
-    private val log = Log(listOf(
-        Trace(listOf(Event(a), Event(b), Event(d))),
-        Trace(listOf(Event(a), Event(c), Event(d)))
-    ))
-    private val miner = DumbMiner(log, Event::activity)
+    private val log = createSimpleLog(listOf("abd", "acd"))
+    private val miner = DumbMiner(log, ::conceptName)
 
     @Test
     fun mine() {
         val graph = miner.mine()
         assertEquals(4, graph.nodes.size)
-        val nodeA = graph.nodes.find { it.eventClass == a }!!
-        val nodeB = graph.nodes.find { it.eventClass == b }!!
-        val nodeC = graph.nodes.find { it.eventClass == c }!!
-        val nodeD = graph.nodes.find { it.eventClass == d }!!
+        val nodeA = graph.nodes.find { it.eventClass == "a" }!!
+        val nodeB = graph.nodes.find { it.eventClass == "b" }!!
+        val nodeC = graph.nodes.find { it.eventClass == "c" }!!
+        val nodeD = graph.nodes.find { it.eventClass == "d" }!!
 
         assertEquals(4, graph.allEdges().size)
         assertEquals(2, graph.edgesFrom(nodeA).size)

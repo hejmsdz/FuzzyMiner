@@ -4,11 +4,11 @@ import com.mrozwadowski.fuzzyminer.classifiers.Classifier
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
-import com.mrozwadowski.fuzzyminer.data.log.Log
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryFrequency
+import org.deckfour.xes.model.XLog
 
 open class DumbMiner<EventClass>(
-    protected val log: Log,
+    protected val log: XLog,
     private val classifier: Classifier<EventClass>
 ) {
     fun mine(): Graph<EventClass> {
@@ -19,7 +19,8 @@ open class DumbMiner<EventClass>(
     }
 
     private fun getActivitiesToNodes(): Map<EventClass, Node<EventClass>> {
-        return log.eventClasses(classifier)
+        val eventClasses = log.flatten().map(classifier)
+        return eventClasses
             .withIndex()
             .associate { (index, eventClass) -> eventClass to Node(eventClass, index) }
     }

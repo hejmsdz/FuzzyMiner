@@ -1,10 +1,10 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import com.mrozwadowski.fuzzyminer.classifiers.Classifier
-import com.mrozwadowski.fuzzyminer.data.log.Log
+import org.deckfour.xes.model.XLog
 
 class EndpointCorrelation<EventClass>(
-    private val log: Log,
+    private val log: XLog,
     private val classifier: Classifier<EventClass>
 ): BinaryCorrelationMetric<EventClass>() {
     override fun calculate(class1: EventClass, class2: EventClass): Double {

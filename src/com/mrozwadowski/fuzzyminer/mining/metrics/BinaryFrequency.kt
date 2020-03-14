@@ -1,19 +1,19 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import com.mrozwadowski.fuzzyminer.classifiers.Classifier
-import com.mrozwadowski.fuzzyminer.data.log.Log
+import org.deckfour.xes.model.XLog
 
 class BinaryFrequency<EventClass>(
-    private val log: Log,
+    private val log: XLog,
     private val classifier: Classifier<EventClass>
 ): BinarySignificanceMetric<EventClass>() {
     private val values = mutableMapOf<Pair<EventClass, EventClass>, Int>()
     private var max = 0.0
 
     init {
-        log.traces.forEach { trace ->
-            (1 until trace.events.size)
-                .map { classifier(trace.events[it - 1]) to classifier(trace.events[it]) }
+        log.forEach { trace ->
+            (1 until trace.size)
+                .map { classifier(trace[it - 1]) to classifier(trace[it]) }
                 .groupingBy { it }
                 .eachCountTo(values)
         }
