@@ -23,7 +23,7 @@ internal class EndpointCorrelationTest {
     private val aClass = classes.getByIdentity(a)
     private val bClass = classes.getByIdentity(b)
     private val cClass = classes.getByIdentity(c)
-    private val dClass = classes.getByIdentity(c)
+    private val dClass = classes.getByIdentity(d)
 
     @Test
     fun calculate() {

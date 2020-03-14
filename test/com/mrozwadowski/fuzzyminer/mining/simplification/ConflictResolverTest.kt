@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
 internal class ConflictResolverTest {
-    private val a = Node(XEventClass("a", 1), 1)
-    private val b = Node(XEventClass("b", 2), 2)
-    private val c = Node(XEventClass("c", 3), 3)
-    private val d = Node(XEventClass("d", 4), 4)
+    private val a = Node(XEventClass("a", 1))
+    private val b = Node(XEventClass("b", 2))
+    private val c = Node(XEventClass("c", 3))
+    private val d = Node(XEventClass("d", 4))
     private val graph = Graph(
         listOf(a, b, c, d),
         mapOf(

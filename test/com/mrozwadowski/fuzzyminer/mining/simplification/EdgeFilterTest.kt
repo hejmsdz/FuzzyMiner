@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 
 internal class EdgeFilterTest {
-    val a = Node(XEventClass("a", 1), 1)
-    val p = Node(XEventClass("p", 2), 2)
-    val q = Node(XEventClass("q", 3), 3)
-    val r = Node(XEventClass("r", 4), 4)
-    val s = Node(XEventClass("s", 5), 5)
+    val a = Node(XEventClass("a", 1))
+    val p = Node(XEventClass("p", 2))
+    val q = Node(XEventClass("q", 3))
+    val r = Node(XEventClass("r", 4))
+    val s = Node(XEventClass("s", 5))
     val graph = Graph(
         listOf(a, p, q, r, s),
         mapOf(a to listOf(Edge(a, p), Edge(a, q), Edge(a, r), Edge(a, s)))
