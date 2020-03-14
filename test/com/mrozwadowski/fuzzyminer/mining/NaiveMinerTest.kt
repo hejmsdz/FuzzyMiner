@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
-internal class DumbMinerTest {
+internal class NaiveMinerTest {
     private val log = createSimpleLog(listOf("abd", "acd"))
-    private val miner = DumbMiner(log, XEventNameClassifier())
+    private val miner = NaiveMiner(log, XEventNameClassifier())
 
     @Test
     fun mine() {

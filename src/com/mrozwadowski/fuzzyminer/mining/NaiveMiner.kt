@@ -9,7 +9,7 @@ import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventClassifier
 import org.deckfour.xes.model.XLog
 
-class DumbMiner(
+class NaiveMiner(
     private val log: XLog,
     private val eventClasses: XEventClasses
 ) {

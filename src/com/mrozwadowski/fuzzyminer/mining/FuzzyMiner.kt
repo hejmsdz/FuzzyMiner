@@ -24,7 +24,7 @@ class FuzzyMiner(
     private val edgeCutoff = 0.2
 
     fun mine(): Graph {
-        var graph = DumbMiner(log, eventClasses).mine()
+        var graph = NaiveMiner(log, eventClasses).mine()
         val cr = ConcurrencyFilter(graph, binarySignificance)
         graph = cr.resolveConflicts(preserveThreshold, ratioThreshold)
         val ef = EdgeFilter(graph, binarySignificance, binaryCorrelation)
