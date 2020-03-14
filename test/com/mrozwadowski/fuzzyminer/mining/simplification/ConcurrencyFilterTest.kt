@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 
-internal class ConflictResolverTest {
+internal class ConcurrencyFilterTest {
     private val a = Node(XEventClass("a", 1))
     private val b = Node(XEventClass("b", 2))
     private val c = Node(XEventClass("c", 3))

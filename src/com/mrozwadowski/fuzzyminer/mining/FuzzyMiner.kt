@@ -3,7 +3,7 @@ package com.mrozwadowski.fuzzyminer.mining
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryFrequency
 import com.mrozwadowski.fuzzyminer.mining.metrics.EndpointCorrelation
-import com.mrozwadowski.fuzzyminer.mining.simplification.ConflictResolver
+import com.mrozwadowski.fuzzyminer.mining.simplification.ConcurrencyFilter
 import com.mrozwadowski.fuzzyminer.mining.simplification.EdgeFilter
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventClassifier
@@ -25,7 +25,7 @@ class FuzzyMiner(
 
     fun mine(): Graph {
         var graph = DumbMiner(log, eventClasses).mine()
-        val cr = ConflictResolver(graph, binarySignificance)
+        val cr = ConcurrencyFilter(graph, binarySignificance)
         graph = cr.resolveConflicts(preserveThreshold, ratioThreshold)
         val ef = EdgeFilter(graph, binarySignificance, binaryCorrelation)
         graph = ef.filterEdges(utilityRatio, edgeCutoff)

@@ -10,7 +10,7 @@ import kotlin.math.abs
 
 typealias NodePairs = Collection<Pair<Node, Node>>
 
-class ConflictResolver(
+class ConcurrencyFilter(
     private val graph: Graph,
     private val binSignificance: BinarySignificanceMetric
 ) {
