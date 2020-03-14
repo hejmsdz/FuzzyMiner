@@ -1,9 +1,9 @@
 package com.mrozwadowski.fuzzyminer
 
-import com.mrozwadowski.fuzzyminer.data.log.Log
 import com.mrozwadowski.fuzzyminer.input.getLogReader
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.output.Dot
+import org.deckfour.xes.model.XLog
 import java.io.File
 import java.io.IOException
 import kotlin.system.exitProcess
@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     }
     val path = args[0]
 
-    val log: Log
+    val log: XLog
     try {
         val file = File(path)
         log = getLogReader(file).readLog()
@@ -24,6 +24,6 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
-    val graph = FuzzyMiner(log) { it.activity }.mine()
+    val graph = FuzzyMiner(log) { it.attributes["concept:name"] }.mine()
     print(Dot(graph))
 }

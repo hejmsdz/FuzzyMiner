@@ -1,27 +1,27 @@
 package com.mrozwadowski.fuzzyminer.input
 
-import com.mrozwadowski.fuzzyminer.data.log.Activity
-import com.mrozwadowski.fuzzyminer.data.log.Event
-import com.mrozwadowski.fuzzyminer.data.log.Log
-import com.mrozwadowski.fuzzyminer.data.log.Trace
+import org.deckfour.xes.factory.XFactoryNaiveImpl
+import org.deckfour.xes.model.XLog
 import java.io.File
 
 class CSV(file: File): LogReader(file) {
     private var traceIdColumn: Int = -1
     private var activityColumn: Int = -1
     private var nextActivityId: Int = 0
-    private val activities = mutableMapOf<String, Activity>()
-    private val traces = mutableMapOf<String, MutableList<Event>>()
+//    private val activities = mutableMapOf<String, Activity>()
+//    private val traces = mutableMapOf<String, MutableList<Event>>()
 
-    override fun readLog(): Log {
+    override fun readLog(): XLog {
         readFile()
-        return Log(traces.values.map { Trace(it) })
+        val factory = XFactoryNaiveImpl()
+        return factory.createLog()
+//        return Log(traces.values.map { Trace(it) })
     }
 
     private fun readFile() {
         val reader = file.bufferedReader()
         readHeaders(reader.readLine())
-        reader.forEachLine { readEvent(it) }
+//        reader.forEachLine { readEvent(it) }
         reader.close()
     }
 
@@ -31,6 +31,7 @@ class CSV(file: File): LogReader(file) {
         activityColumn = fields.indexOf("Activity")
     }
 
+    /*
     private fun readEvent(line: String) {
         val fields = line.split(",")
         val traceId = fields[traceIdColumn]
@@ -41,4 +42,5 @@ class CSV(file: File): LogReader(file) {
         val event = Event(activity)
         trace.add(event)
     }
+     */
 }

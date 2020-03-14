@@ -1,5 +1,5 @@
 package com.mrozwadowski.fuzzyminer.classifiers
 
-import com.mrozwadowski.fuzzyminer.data.log.Event
+import org.deckfour.xes.model.XEvent
 
-typealias Classifier<EventClass> = (Event) -> EventClass
+typealias Classifier<EventClass> = (XEvent) -> EventClass

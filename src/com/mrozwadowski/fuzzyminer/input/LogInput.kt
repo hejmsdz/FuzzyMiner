@@ -1,10 +1,10 @@
 package com.mrozwadowski.fuzzyminer.input
 
+import org.deckfour.xes.model.XLog
 import java.io.File
-import com.mrozwadowski.fuzzyminer.data.log.Log
 
 abstract class LogReader(protected val file: File) {
-    abstract fun readLog(): Log
+    abstract fun readLog(): XLog
 }
 
 fun getLogReader(file: File): LogReader {
