@@ -1,27 +1,29 @@
 package com.mrozwadowski.fuzzyminer.input
 
+import org.deckfour.xes.factory.XFactory
 import org.deckfour.xes.factory.XFactoryNaiveImpl
+import org.deckfour.xes.model.XAttribute
 import org.deckfour.xes.model.XLog
+import org.deckfour.xes.model.XTrace
 import java.io.File
 
 class CSV(file: File): LogReader(file) {
+    private val factory: XFactory = XFactoryNaiveImpl()
+    private val log: XLog = factory.createLog()
     private var traceIdColumn: Int = -1
     private var activityColumn: Int = -1
-    private var nextActivityId: Int = 0
-//    private val activities = mutableMapOf<String, Activity>()
-//    private val traces = mutableMapOf<String, MutableList<Event>>()
+    private val traces = mutableMapOf<String, XTrace>()
 
     override fun readLog(): XLog {
         readFile()
-        val factory = XFactoryNaiveImpl()
-        return factory.createLog()
-//        return Log(traces.values.map { Trace(it) })
+        log.addAll(traces.values)
+        return log
     }
 
     private fun readFile() {
         val reader = file.bufferedReader()
         readHeaders(reader.readLine())
-//        reader.forEachLine { readEvent(it) }
+        reader.forEachLine { readEvent(it) }
         reader.close()
     }
 
@@ -31,16 +33,18 @@ class CSV(file: File): LogReader(file) {
         activityColumn = fields.indexOf("Activity")
     }
 
-    /*
     private fun readEvent(line: String) {
         val fields = line.split(",")
         val traceId = fields[traceIdColumn]
         val activityName = fields[activityColumn]
 
-        val activity = activities.getOrPut(activityName, { Activity(activityName, nextActivityId++) })
-        val trace = traces.getOrPut(traceId, { mutableListOf() })
-        val event = Event(activity)
+        val trace = traces.getOrPut(traceId, { factory.createTrace() })
+        val event = factory.createEvent()
+        event.attributes["concept:name"] = conceptName(activityName)
         trace.add(event)
     }
-     */
+
+    private fun conceptName(name: String): XAttribute {
+        return factory.createAttributeLiteral("concept:name", name, null)
+    }
 }
