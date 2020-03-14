@@ -8,6 +8,8 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.abs
 
+typealias NodePairs = Collection<Pair<Node, Node>>
+
 class ConflictResolver(
     private val graph: Graph,
     private val binSignificance: BinarySignificanceMetric
@@ -23,27 +25,37 @@ class ConflictResolver(
 
             logger.log(Level.FINER, "Rel. significance: $ab, $ba")
             if (ab >= preserveThreshold && ba >= preserveThreshold) {
-                logger.log(Level.FINE, "'$a' and '$b' form a loop")
-                listOf()  // 2-loop, keep both edges
+                handleLength2Loop(a, b)
             } else if (offset >= ratioThreshold) {
-                // exception, remove less significant edge
                 if (ab > ba) {
-                    logger.log(Level.FINE, "'$b' following '$a' is an exception")
-                    listOf(b to a)
+                    handleException(b, a)
                 } else {
-                    logger.log(Level.FINE, "'$a' following '$b' is an exception")
-                    listOf(a to b)
+                    handleException(a, b)
                 }
             } else {
-                logger.log(Level.FINE, "'$a' and '$b' are concurrent")
-                listOf(a to b, b to a) // concurrency, remove both edges
+                handleConcurrency(a, b)
             }
         }
 
         return graph.withoutEdges(edgesToRemove)
     }
 
-    private fun conflictedPairs(): Collection<Pair<Node, Node>> {
+    private fun handleLength2Loop(a: Node, b: Node): NodePairs {
+        logger.log(Level.FINE, "'$a' and '$b' form a loop")
+        return listOf()
+    }
+
+    private fun handleException(a: Node, b: Node): NodePairs {
+        logger.log(Level.FINE, "'$a' following '$b' is an exception")
+        return listOf(a to b)
+    }
+
+    private fun handleConcurrency(a: Node, b: Node): NodePairs {
+        logger.log(Level.FINE, "'$a' and '$b' are concurrent")
+        return listOf(a to b, b to a)
+    }
+
+    private fun conflictedPairs(): NodePairs {
         return findConflicts(graph).map { set ->
             assert(set.size == 2)
             val (first, second) = set.toList()
