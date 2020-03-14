@@ -1,34 +1,36 @@
 package com.mrozwadowski.fuzzyminer.mining
 
-import com.mrozwadowski.fuzzyminer.classifiers.Classifier
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryFrequency
+import org.deckfour.xes.classification.XEventClass
+import org.deckfour.xes.classification.XEventClasses
+import org.deckfour.xes.classification.XEventClassifier
 import org.deckfour.xes.model.XLog
 
-open class DumbMiner<EventClass>(
-    protected val log: XLog,
-    private val classifier: Classifier<EventClass>
+class DumbMiner(
+    private val log: XLog,
+    private val eventClasses: XEventClasses
 ) {
-    fun mine(): Graph<EventClass> {
+    constructor(log: XLog, classifier: XEventClassifier):
+            this(log, XEventClasses.deriveEventClasses(classifier, log))
+
+    fun mine(): Graph {
         val activitiesToNodes = getActivitiesToNodes()
         val nodes = activitiesToNodes.values.toList()
         val edges = getEdges(activitiesToNodes)
         return Graph(nodes, edges)
     }
 
-    private fun getActivitiesToNodes(): Map<EventClass, Node<EventClass>> {
-        val eventClasses = log.flatten().map(classifier)
-        return eventClasses
-            .withIndex()
-            .associate { (index, eventClass) -> eventClass to Node(eventClass, index) }
+    private fun getActivitiesToNodes(): Map<XEventClass, Node> {
+        return eventClasses.classes.associate { it to Node(it, it.index) }
     }
 
-    private fun getEdges(activitiesToNodes: Map<EventClass, Node<EventClass>>):
-            Map<Node<EventClass>, List<Edge<EventClass>>> {
-        val edges = mutableMapOf<Node<EventClass>, MutableList<Edge<EventClass>>>()
-        BinaryFrequency(log, classifier).allPairs().forEach { (source, target) ->
+    private fun getEdges(activitiesToNodes: Map<XEventClass, Node>):
+            Map<Node, List<Edge>> {
+        val edges = mutableMapOf<Node, MutableList<Edge>>()
+        BinaryFrequency(log, eventClasses).allPairs().forEach { (source, target) ->
             val sourceNode = activitiesToNodes.getValue(source)
             val targetNode = activitiesToNodes.getValue(target)
             val edgesForNode = edges.getOrPut(sourceNode, { mutableListOf() })

@@ -1,7 +1,8 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-import com.mrozwadowski.fuzzyminer.conceptName
 import com.mrozwadowski.fuzzyminer.createLog
+import org.deckfour.xes.classification.XEventClasses
+import org.deckfour.xes.classification.XEventNameClassifier
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
@@ -17,13 +18,19 @@ internal class EndpointCorrelationTest {
         listOf(a, c),
         listOf(a, b, b, b, d)
     ))
+    private val classes = XEventClasses.deriveEventClasses(XEventNameClassifier(), log)
+
+    private val aClass = classes.getByIdentity(a)
+    private val bClass = classes.getByIdentity(b)
+    private val cClass = classes.getByIdentity(c)
+    private val dClass = classes.getByIdentity(c)
 
     @Test
     fun calculate() {
-        val ec = EndpointCorrelation(log, ::conceptName)
-        assertEquals(0.5625, ec.calculate(a, b), 0.0001)
-        assertEquals(0.2941, ec.calculate(a, c), 0.0001)
-        assertEquals(0.1250, ec.calculate(a, d), 0.0001)
+        val ec = EndpointCorrelation()
+        assertEquals(0.5625, ec.calculate(aClass, bClass), 0.0001)
+        assertEquals(0.2941, ec.calculate(aClass, cClass), 0.0001)
+        assertEquals(0.1250, ec.calculate(aClass, dClass), 0.0001)
     }
 
     @Test

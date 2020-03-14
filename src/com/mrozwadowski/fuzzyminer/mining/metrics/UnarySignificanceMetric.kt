@@ -1,5 +1,7 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-abstract class UnarySignificanceMetric<EventClass> {
-    abstract fun calculate(eventClass: EventClass): Double
+import org.deckfour.xes.classification.XEventClass
+
+abstract class UnarySignificanceMetric {
+    abstract fun calculate(eventClass: XEventClass): Double
 }

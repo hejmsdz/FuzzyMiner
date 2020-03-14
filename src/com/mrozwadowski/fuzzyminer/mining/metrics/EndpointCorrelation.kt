@@ -1,13 +1,9 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-import com.mrozwadowski.fuzzyminer.classifiers.Classifier
-import org.deckfour.xes.model.XLog
+import org.deckfour.xes.classification.XEventClass
 
-class EndpointCorrelation<EventClass>(
-    private val log: XLog,
-    private val classifier: Classifier<EventClass>
-): BinaryCorrelationMetric<EventClass>() {
-    override fun calculate(class1: EventClass, class2: EventClass): Double {
+class EndpointCorrelation(): BinaryCorrelationMetric() {
+    override fun calculate(class1: XEventClass, class2: XEventClass): Double {
         val name1 = class1.toString()
         val name2 = class2.toString()
         val distance = levenshtein(name1, name2).toDouble()

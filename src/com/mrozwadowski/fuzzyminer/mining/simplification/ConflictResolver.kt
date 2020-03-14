@@ -1,20 +1,20 @@
 package com.mrozwadowski.fuzzyminer.mining.simplification
 
-import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinarySignificanceMetric
+import org.deckfour.xes.classification.XEventClass
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.abs
 
-class ConflictResolver<EventClass>(
-    private val graph: Graph<EventClass>,
-    private val binSignificance: BinarySignificanceMetric<EventClass>
+class ConflictResolver(
+    private val graph: Graph,
+    private val binSignificance: BinarySignificanceMetric
 ) {
     private val logger = Logger.getLogger(javaClass.name)
 
-    fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double): Graph<EventClass> {
+    fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double): Graph {
         val conflicts = conflictedPairs()
         val edgesToRemove = conflicts.flatMap { (a, b) ->
             val ab = relativeSignificance(a.eventClass, b.eventClass)
@@ -43,7 +43,7 @@ class ConflictResolver<EventClass>(
         return graph.withoutEdges(edgesToRemove)
     }
 
-    private fun conflictedPairs(): Collection<Pair<Node<EventClass>, Node<EventClass>>> {
+    private fun conflictedPairs(): Collection<Pair<Node, Node>> {
         return findConflicts(graph).map { set ->
             assert(set.size == 2)
             val (first, second) = set.toList()
@@ -51,7 +51,7 @@ class ConflictResolver<EventClass>(
         }
     }
 
-    private fun relativeSignificance(a: EventClass, b: EventClass): Double {
+    private fun relativeSignificance(a: XEventClass, b: XEventClass): Double {
         val abSignificance = binSignificance.calculate(a, b).toDouble() * 0.5
         val eventClasses = graph.nodes.map { it.eventClass }
         val axSignificance = eventClasses.sumByDouble { binSignificance.calculate(a, it).toDouble() }
@@ -60,7 +60,7 @@ class ConflictResolver<EventClass>(
     }
 }
 
-fun <EventClass>findConflicts(graph: Graph<EventClass>): Set<Set<Node<EventClass>>> {
+fun findConflicts(graph: Graph): Set<Set<Node>> {
     return graph.nodes.flatMap { source ->
         graph.edgesFrom(source)
             .filter { edge -> graph.edgeBetween(edge.target, source) != null && edge.target != source }

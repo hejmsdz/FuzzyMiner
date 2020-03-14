@@ -1,5 +1,7 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-abstract class BinaryCorrelationMetric<EventClass> {
-    abstract fun calculate(class1: EventClass, class2: EventClass): Double
+import org.deckfour.xes.classification.XEventClass
+
+abstract class BinaryCorrelationMetric {
+    abstract fun calculate(class1: XEventClass, class2: XEventClass): Double
 }

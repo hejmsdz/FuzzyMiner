@@ -5,34 +5,35 @@ import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryCorrelationMetric
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinarySignificanceMetric
+import org.deckfour.xes.classification.XEventClass
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 
 internal class EdgeFilterTest {
-    val a = Node("a", 1)
-    val p = Node("p", 2)
-    val q = Node("q", 3)
-    val r = Node("r", 4)
-    val s = Node("s", 5)
+    val a = Node(XEventClass("a", 1), 1)
+    val p = Node(XEventClass("p", 2), 2)
+    val q = Node(XEventClass("q", 3), 3)
+    val r = Node(XEventClass("r", 4), 4)
+    val s = Node(XEventClass("s", 5), 5)
     val graph = Graph(
         listOf(a, p, q, r, s),
         mapOf(a to listOf(Edge(a, p), Edge(a, q), Edge(a, r), Edge(a, s)))
     )
 
-    private class MockSignificance: BinarySignificanceMetric<String>() {
+    private class MockSignificance: BinarySignificanceMetric() {
         val values = mapOf("p" to 1.0, "q" to 0.9, "r" to 0.7, "s" to 0.5)
-        override fun calculate(class1: String, class2: String): Double {
-            assert(class1 == "a")
-            return values.getOrDefault(class2, 0.0)
+        override fun calculate(class1: XEventClass, class2: XEventClass): Double {
+            assert(class1.id == "a")
+            return values.getOrDefault(class2.id, 0.0)
         }
     }
 
-    private class MockCorrelation: BinaryCorrelationMetric<String>() {
+    private class MockCorrelation: BinaryCorrelationMetric() {
         val values = mapOf("p" to 1.0, "q" to 0.2, "r" to 0.8, "s" to 0.3)
-        override fun calculate(class1: String, class2: String): Double {
-            assert(class1 == "a")
-            return values.getOrDefault(class2, 0.0)
+        override fun calculate(class1: XEventClass, class2: XEventClass): Double {
+            assert(class1.id == "a")
+            return values.getOrDefault(class2.id, 0.0)
         }
     }
 

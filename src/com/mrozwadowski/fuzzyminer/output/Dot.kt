@@ -3,7 +3,7 @@ package com.mrozwadowski.fuzzyminer.output
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import java.lang.StringBuilder
 
-class Dot<EventClass>(private val graph: Graph<EventClass>) {
+class Dot(private val graph: Graph) {
     override fun toString(): String {
         val out = StringBuilder()
         out.appendln("digraph {")

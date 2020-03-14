@@ -5,13 +5,14 @@ import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryCorrelationMetric
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinarySignificanceMetric
+import org.deckfour.xes.classification.XEventClass
 
-class EdgeFilter<EventClass>(
-    private val graph: Graph<EventClass>,
-    private val binSignificance: BinarySignificanceMetric<EventClass>,
-    private val binCorrelation: BinaryCorrelationMetric<EventClass>
+class EdgeFilter(
+    private val graph: Graph,
+    private val binSignificance: BinarySignificanceMetric,
+    private val binCorrelation: BinaryCorrelationMetric
 ) {
-    fun filterEdges(utilityRatio: Double, cutoff: Double): Graph<EventClass> {
+    fun filterEdges(utilityRatio: Double, cutoff: Double): Graph {
         val edgesToRemove = graph.nodes
             .map { it to graph.edgesFrom(it) }
             .filterNot { (_, edges) -> edges.isEmpty() }
@@ -25,7 +26,7 @@ class EdgeFilter<EventClass>(
         return graph.withoutEdges(edgesToRemove)
     }
 
-    fun relativeUtilities(source: Node<EventClass>, edges: Collection<Edge<EventClass>>, utilityRatio: Double): Map<Edge<EventClass>, Double> {
+    fun relativeUtilities(source: Node, edges: Collection<Edge>, utilityRatio: Double): Map<Edge, Double> {
         val utilities = edges.associateWith {
             utility(source.eventClass, it.target.eventClass, utilityRatio)
         }
@@ -35,7 +36,7 @@ class EdgeFilter<EventClass>(
         return utilities.mapValues { (it.value - min) / range }
     }
 
-    private fun utility(a: EventClass, b: EventClass, utilityRatio: Double): Double {
+    private fun utility(a: XEventClass, b: XEventClass, utilityRatio: Double): Double {
         val significance = binSignificance.calculate(a, b).toDouble()
         val correlation = binCorrelation.calculate(a, b).toDouble()
         return utilityRatio * significance + (1 - utilityRatio) * correlation

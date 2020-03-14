@@ -3,6 +3,7 @@ package com.mrozwadowski.fuzzyminer
 import com.mrozwadowski.fuzzyminer.input.getLogReader
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.output.Dot
+import org.deckfour.xes.classification.XEventNameClassifier
 import org.deckfour.xes.model.XLog
 import java.io.File
 import java.io.IOException
@@ -24,6 +25,7 @@ fun main(args: Array<String>) {
         exitProcess(1)
     }
 
-    val graph = FuzzyMiner(log) { it.attributes["concept:name"] }.mine()
+    val classifier = XEventNameClassifier()
+    val graph = FuzzyMiner(log, classifier).mine()
     print(Dot(graph))
 }

@@ -1,21 +1,22 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-import com.mrozwadowski.fuzzyminer.classifiers.Classifier
+import org.deckfour.xes.classification.XEventClass
+import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.model.XLog
 
-class UnaryFrequency<EventClass>(
+class UnaryFrequency(
     private val log: XLog,
-    private val classifier: Classifier<EventClass>
-): UnarySignificanceMetric<EventClass>() {
-    private val values = mutableMapOf<EventClass, Int>()
+    private val classes: XEventClasses
+): UnarySignificanceMetric() {
+    private val values = mutableMapOf<XEventClass, Int>()
     private var max = 0.0
 
     init {
         log.flatten()
-            .groupingBy(classifier)
+            .groupingBy(classes::getClassOf)
             .eachCountTo(values)
         max = values.values.max()?.toDouble() ?: 1.0
     }
 
-    override fun calculate(eventClass: EventClass): Double = values.getOrDefault(eventClass, 0) / max
+    override fun calculate(eventClass: XEventClass): Double = values.getOrDefault(eventClass, 0) / max
 }
