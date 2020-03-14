@@ -42,11 +42,11 @@ internal class EdgeFilterTest {
 
     @Test
     fun relativeUtilities() {
-        val relativeUtilities = edgeFilter.relativeUtilities(a, graph.edgesFrom(a), utilityRatio)
-        assertEquals(1.000, relativeUtilities[Edge(a, p)]!!, 0.001)
-        assertEquals(0.250, relativeUtilities[Edge(a, q)]!!, 0.001)
-        assertEquals(0.583, relativeUtilities[Edge(a, r)]!!, 0.001)
-        assertEquals(0.000, relativeUtilities[Edge(a, s)]!!, 0.001)
+        val values = edgeFilter.relativeUtilities(graph.edgesFrom(a), utilityRatio)
+        assertEquals(1.000, values.getValue(Edge(a, p)), 0.001)
+        assertEquals(0.250, values.getValue(Edge(a, q)), 0.001)
+        assertEquals(0.583, values.getValue(Edge(a, r)), 0.001)
+        assertEquals(0.000, values.getValue(Edge(a, s)), 0.001)
     }
 
     @Test
