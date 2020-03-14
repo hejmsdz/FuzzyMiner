@@ -37,8 +37,8 @@ class EdgeFilter(
     }
 
     private fun utility(a: XEventClass, b: XEventClass, utilityRatio: Double): Double {
-        val significance = binSignificance.calculate(a, b).toDouble()
-        val correlation = binCorrelation.calculate(a, b).toDouble()
+        val significance = binSignificance.calculate(a, b)
+        val correlation = binCorrelation.calculate(a, b)
         return utilityRatio * significance + (1 - utilityRatio) * correlation
     }
 }

@@ -5,7 +5,7 @@ import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.model.XLog
 
 class BinaryFrequency(
-    private val log: XLog,
+    log: XLog,
     private val classes: XEventClasses
 ): BinarySignificanceMetric() {
     private val values = mutableMapOf<Pair<XEventClass, XEventClass>, Int>()

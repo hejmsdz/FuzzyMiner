@@ -26,4 +26,3 @@ fun createLog(traces: List<List<String>>): XLog {
     return log
 }
 
-fun conceptName(event: XEvent) = event.attributes["concept:name"].toString()

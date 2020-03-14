@@ -2,7 +2,7 @@ package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import org.deckfour.xes.classification.XEventClass
 
-class EndpointCorrelation(): BinaryCorrelationMetric() {
+class EndpointCorrelation : BinaryCorrelationMetric() {
     override fun calculate(class1: XEventClass, class2: XEventClass): Double {
         val name1 = class1.toString()
         val name2 = class2.toString()

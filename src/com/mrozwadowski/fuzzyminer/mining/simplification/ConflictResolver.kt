@@ -52,10 +52,10 @@ class ConflictResolver(
     }
 
     private fun relativeSignificance(a: XEventClass, b: XEventClass): Double {
-        val abSignificance = binSignificance.calculate(a, b).toDouble() * 0.5
+        val abSignificance = binSignificance.calculate(a, b) * 0.5
         val eventClasses = graph.nodes.map { it.eventClass }
-        val axSignificance = eventClasses.sumByDouble { binSignificance.calculate(a, it).toDouble() }
-        val xbSignificance = eventClasses.sumByDouble { binSignificance.calculate(it, b).toDouble() }
+        val axSignificance = eventClasses.sumByDouble { binSignificance.calculate(a, it) }
+        val xbSignificance = eventClasses.sumByDouble { binSignificance.calculate(it, b) }
         return 0.5 * abSignificance * ((1 / axSignificance) + (1 / xbSignificance))
     }
 }

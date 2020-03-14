@@ -1,9 +1,9 @@
 package com.mrozwadowski.fuzzyminer.mining
 
-import com.mrozwadowski.fuzzyminer.conceptName
 import com.mrozwadowski.fuzzyminer.createSimpleLog
 import org.deckfour.xes.classification.XEventNameClassifier
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 internal class DumbMinerTest {

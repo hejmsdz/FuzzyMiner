@@ -4,7 +4,6 @@ import com.mrozwadowski.fuzzyminer.createLog
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventNameClassifier
 import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
 
 internal class EndpointCorrelationTest {

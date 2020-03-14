@@ -24,7 +24,7 @@ class DumbMiner(
     }
 
     private fun getActivitiesToNodes(): Map<XEventClass, Node> {
-        return eventClasses.classes.associate { it to Node(it) }
+        return eventClasses.classes.associateWith { Node(it) }
     }
 
     private fun getEdges(activitiesToNodes: Map<XEventClass, Node>):
