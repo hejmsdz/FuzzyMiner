@@ -8,9 +8,8 @@ abstract class LogReader(protected val file: File) {
 }
 
 fun getLogReader(file: File): LogReader {
-    return when (val extension = file.extension.toLowerCase()) {
+    return when (file.extension.toLowerCase()) {
         "csv" -> CSV(file)
-        "xes" -> OpenXES(file)
-        else -> throw UnknownLogFormat(extension)
+        else -> OpenXES(file)
     }
 }
