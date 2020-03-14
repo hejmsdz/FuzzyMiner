@@ -50,8 +50,8 @@ internal class EdgeFilterTest {
     }
 
     @Test
-    fun filterEdges() {
-        val simplifiedGraph = edgeFilter.filterEdges(utilityRatio, cutoff)
+    fun apply() {
+        val simplifiedGraph = edgeFilter.apply(utilityRatio, cutoff)
         assertNotNull(simplifiedGraph.edgeBetween(a, p))
         assertNull(simplifiedGraph.edgeBetween(a, q))
         assertNotNull(simplifiedGraph.edgeBetween(a, r))

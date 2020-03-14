@@ -25,10 +25,18 @@ class FuzzyMiner(
 
     fun mine(): Graph {
         var graph = NaiveMiner(log, eventClasses).mine()
-        val cr = ConcurrencyFilter(graph, binarySignificance)
-        graph = cr.resolveConflicts(preserveThreshold, ratioThreshold)
-        val ef = EdgeFilter(graph, binarySignificance, binaryCorrelation)
-        graph = ef.filterEdges(utilityRatio, edgeCutoff)
+        graph = filterConcurrency(graph)
+        graph = filterEdges(graph)
         return graph
+    }
+
+    fun filterConcurrency(graph: Graph): Graph {
+        val filter = ConcurrencyFilter(graph, binarySignificance)
+        return filter.apply(preserveThreshold, ratioThreshold)
+    }
+
+    fun filterEdges(graph: Graph): Graph {
+        val filter = EdgeFilter(graph, binarySignificance, binaryCorrelation)
+        return filter.apply(utilityRatio, edgeCutoff)
     }
 }

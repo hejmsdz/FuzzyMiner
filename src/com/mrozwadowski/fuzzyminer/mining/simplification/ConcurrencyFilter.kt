@@ -16,7 +16,7 @@ class ConcurrencyFilter(
 ) {
     private val logger = Logger.getLogger(javaClass.name)
 
-    fun resolveConflicts(preserveThreshold: Double, ratioThreshold: Double): Graph {
+    fun apply(preserveThreshold: Double, ratioThreshold: Double): Graph {
         val conflicts = conflictedPairs()
         val edgesToRemove = conflicts.flatMap { (a, b) ->
             val ab = relativeSignificance(a.eventClass, b.eventClass)

@@ -11,7 +11,7 @@ class EdgeFilter(
     private val binSignificance: BinarySignificanceMetric,
     private val binCorrelation: BinaryCorrelationMetric
 ) {
-    fun filterEdges(utilityRatio: Double, cutoff: Double): Graph {
+    fun apply(utilityRatio: Double, cutoff: Double): Graph {
         val edgesToRemove = graph.nodes
             .map { graph.edgesFrom(it) }
             .filterNot { it.isEmpty() }
