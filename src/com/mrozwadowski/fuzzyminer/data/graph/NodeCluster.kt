@@ -1,3 +1,3 @@
 package com.mrozwadowski.fuzzyminer.data.graph
 
-class NodeCluster
+data class NodeCluster(val nodes: Collection<Node>)

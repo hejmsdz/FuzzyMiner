@@ -1,8 +1,7 @@
 package com.mrozwadowski.fuzzyminer.data.graph
 
-import org.deckfour.xes.classification.XEventClass
-
-data class Node(val eventClass: XEventClass) {
-    val id = eventClass.index
-    override fun toString() = eventClass.toString()
+interface Node {
+    val id: Int
+    override fun toString(): String
+//    val eventClass: XEventClass
 }

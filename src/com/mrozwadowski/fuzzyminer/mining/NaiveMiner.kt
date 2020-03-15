@@ -3,6 +3,7 @@ package com.mrozwadowski.fuzzyminer.mining
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
+import com.mrozwadowski.fuzzyminer.data.graph.PrimitiveNode
 import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryFrequency
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
@@ -24,7 +25,7 @@ class NaiveMiner(
     }
 
     private fun getActivitiesToNodes(): Map<XEventClass, Node> {
-        return eventClasses.classes.associateWith { Node(it) }
+        return eventClasses.classes.associateWith { PrimitiveNode(it) }
     }
 
     private fun getEdges(activitiesToNodes: Map<XEventClass, Node>):

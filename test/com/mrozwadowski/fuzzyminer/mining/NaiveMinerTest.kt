@@ -14,10 +14,10 @@ internal class NaiveMinerTest {
     fun mine() {
         val graph = miner.mine()
         assertEquals(4, graph.nodes.size)
-        val nodeA = graph.nodes.find { it.eventClass.id == "a" }!!
-        val nodeB = graph.nodes.find { it.eventClass.id == "b" }!!
-        val nodeC = graph.nodes.find { it.eventClass.id == "c" }!!
-        val nodeD = graph.nodes.find { it.eventClass.id == "d" }!!
+        val nodeA = graph.nodes.find { it.toString() == "a" }!!
+        val nodeB = graph.nodes.find { it.toString() == "b" }!!
+        val nodeC = graph.nodes.find { it.toString() == "c" }!!
+        val nodeD = graph.nodes.find { it.toString() == "d" }!!
 
         assertEquals(4, graph.allEdges().size)
         assertEquals(2, graph.edgesFrom(nodeA).size)
