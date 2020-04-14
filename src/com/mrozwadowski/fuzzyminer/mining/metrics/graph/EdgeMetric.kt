@@ -13,6 +13,9 @@ class EdgeMetric(private val binaryMetric: BinaryMetric) {
         if (node1 is PrimitiveNode && node2 is NodeCluster) {
             return nodeToCluster(node1, node2)
         }
+        if (node1 is NodeCluster && node2 is PrimitiveNode) {
+            return nodeToCluster(node2, node1)
+        }
         if (node1 is NodeCluster && node2 is NodeCluster) {
             return clusterToCluster(node1, node2)
         }
