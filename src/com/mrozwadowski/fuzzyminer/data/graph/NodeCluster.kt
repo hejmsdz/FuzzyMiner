@@ -5,4 +5,7 @@ data class NodeCluster(val nodes: Collection<Node>): Node {
     override fun toString(): String {
         return nodes.joinToString(", ")
     }
+
+    override fun toCluster(): NodeCluster = this
+    operator fun plus(other: NodeCluster): NodeCluster = NodeCluster(nodes + other.nodes)
 }
