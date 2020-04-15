@@ -1,26 +1,31 @@
 package com.mrozwadowski.fuzzyminer.mining.simplification
 
+import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.data.graph.NodeCluster
 import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
 import com.mrozwadowski.fuzzyminer.mining.metrics.graph.NodeMetric
 
-class NodeFilter(
+class VictimClusterer(
     private val graph: Graph,
     private val significance: NodeMetric,
     private val binCorrelation: EdgeMetric
 ) {
-    fun apply(cutoff: Double) {
-        val victims = findVictims(cutoff)
+    fun apply(cutoff: Double): Graph {
+        val victims = findVictims(cutoff).toSet()
         val clusters = clustersFromAssignment(assignInitialClusters(victims))
-
-//        clusters.forEach { cluster ->
-//            val predecessors = cluster.flatMap { graph.edgesFrom(it).map { edge -> edge.source } }
-//            val successors = cluster.flatMap { graph.edgesTo(it).map { edge -> edge.target } }
-//            val predecessorsAreClusters = victims.containsAll(predecessors)
-//            val successorsAreClusters = victims.containsAll(successors)
-//        }
+        val reverseClusterMap = clusters.flatMap { cluster -> cluster.nodes.map { it to cluster } }.toMap()
+        val primitives = graph.nodes - victims
+        val edges = graph.allEdges()
+            .filter { (source, target) ->
+                (source !in victims) || (target !in victims) || (reverseClusterMap[source] != reverseClusterMap[target])
+            }.map { (source, target) ->
+            (reverseClusterMap[source] ?: source) to (reverseClusterMap[target] ?: target)
+        }
+        val edgeMap = edges.groupBy { it.first }
+            .mapValues { it.value.map { (source, target) -> Edge(source, target) } }
+        return Graph(primitives + clusters, edgeMap)
     }
 
     private fun findVictims(cutoff: Double): Collection<Node> {
@@ -46,5 +51,4 @@ class NodeFilter(
             .values
             .map { entries -> NodeCluster(entries.map { it.key }) }
     }
-
 }
