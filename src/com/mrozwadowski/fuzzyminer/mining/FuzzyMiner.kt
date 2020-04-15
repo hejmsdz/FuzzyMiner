@@ -28,7 +28,7 @@ class FuzzyMiner(
     private val ratioThreshold = 0.05
     private val utilityRatio = 0.5
     private val edgeCutoff = 0.2
-    private val nodeCutoff = 0.01
+    private val nodeCutoff = 0.1
 
     fun mine(): Graph {
         var graph = NaiveMiner(log, eventClasses).mine()
