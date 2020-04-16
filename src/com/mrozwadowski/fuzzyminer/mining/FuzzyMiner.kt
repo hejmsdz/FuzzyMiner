@@ -6,10 +6,7 @@ import com.mrozwadowski.fuzzyminer.mining.metrics.EndpointCorrelation
 import com.mrozwadowski.fuzzyminer.mining.metrics.UnaryFrequency
 import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
 import com.mrozwadowski.fuzzyminer.mining.metrics.graph.NodeMetric
-import com.mrozwadowski.fuzzyminer.mining.simplification.ClusterMerger
-import com.mrozwadowski.fuzzyminer.mining.simplification.ConcurrencyFilter
-import com.mrozwadowski.fuzzyminer.mining.simplification.EdgeFilter
-import com.mrozwadowski.fuzzyminer.mining.simplification.VictimClusterer
+import com.mrozwadowski.fuzzyminer.mining.simplification.*
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventClassifier
 import org.deckfour.xes.model.XLog
@@ -52,6 +49,8 @@ class FuzzyMiner(
         val filter1 = VictimClusterer(graph, unarySignificance, binaryCorrelation)
         val graph1 = filter1.apply(nodeCutoff)
         val filter2 = ClusterMerger(graph1, binaryCorrelation)
-        return filter2.apply()
+        val graph2 = filter2.apply()
+        val filter3 = ClusterFilter(graph2)
+        return filter3.apply()
     }
 }
