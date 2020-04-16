@@ -55,6 +55,7 @@ class ClusterMerger(
         clusters.add(newCluster)
 
         edges.remove(a to b)
+        edges.remove(b to a)
         val incomingEdges = edges.filter { it.second == a || it.second == b }
         val outgoingEdges = edges.filter { it.first == a || it.first == b }
         edges.removeAll(incomingEdges)
