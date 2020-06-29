@@ -7,7 +7,7 @@ import org.deckfour.xes.model.XLog
 class UnaryFrequency(
     log: XLog,
     classes: XEventClasses
-): UnarySignificanceMetric() {
+): UnaryMetric {
     private val values = mutableMapOf<XEventClass, Int>()
     private var max = 0.0
 

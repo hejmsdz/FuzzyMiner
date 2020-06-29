@@ -2,8 +2,7 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
-import com.mrozwadowski.fuzzyminer.mining.metrics.BinarySignificanceMetric
-import org.deckfour.xes.classification.XEventClass
+import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.abs
@@ -12,15 +11,15 @@ typealias NodePairs = Collection<Pair<Node, Node>>
 
 class ConcurrencyFilter(
     private val graph: Graph,
-    private val binSignificance: BinarySignificanceMetric
+    private val binSignificance: EdgeMetric
 ) {
     private val logger = Logger.getLogger(javaClass.name)
 
     fun apply(preserveThreshold: Double, ratioThreshold: Double): Graph {
         val conflicts = conflictedPairs()
         val edgesToRemove = conflicts.flatMap { (a, b) ->
-            val ab = relativeSignificance(a.eventClass, b.eventClass)
-            val ba = relativeSignificance(b.eventClass, a.eventClass)
+            val ab = relativeSignificance(a, b)
+            val ba = relativeSignificance(b, a)
             val offset = abs(ab - ba)
 
             logger.log(Level.FINER, "Rel. significance: $ab, $ba")
@@ -63,11 +62,10 @@ class ConcurrencyFilter(
         }
     }
 
-    private fun relativeSignificance(a: XEventClass, b: XEventClass): Double {
+    private fun relativeSignificance(a: Node, b: Node): Double {
         val abSignificance = binSignificance.calculate(a, b) * 0.5
-        val eventClasses = graph.nodes.map { it.eventClass }
-        val axSignificance = eventClasses.sumByDouble { binSignificance.calculate(a, it) }
-        val xbSignificance = eventClasses.sumByDouble { binSignificance.calculate(it, b) }
+        val axSignificance = graph.nodes.sumByDouble { binSignificance.calculate(a, it) }
+        val xbSignificance = graph.nodes.sumByDouble { binSignificance.calculate(it, b) }
         return 0.5 * abSignificance * ((1 / axSignificance) + (1 / xbSignificance))
     }
 }
