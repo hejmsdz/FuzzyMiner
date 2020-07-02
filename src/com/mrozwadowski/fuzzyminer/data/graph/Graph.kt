@@ -26,6 +26,10 @@ data class Graph(
         }
     }
 
+    fun allEdgeObjects(): Collection<Edge> {
+        return edges.values.flatten()
+    }
+
     fun withoutEdges(edgesToRemove: Collection<Pair<Node, Node>>): Graph {
         val preservedEdges = (allEdges() - edgesToRemove)
             .groupBy { it.first }
