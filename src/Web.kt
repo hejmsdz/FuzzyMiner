@@ -5,6 +5,7 @@ import com.mrozwadowski.fuzzyminer.input.getLogReader
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.output.JSON
 import org.deckfour.xes.classification.XEventNameClassifier
+
 import spark.kotlin.Http
 import spark.kotlin.ignite
 import java.io.File

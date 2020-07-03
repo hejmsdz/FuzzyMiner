@@ -1,5 +1,8 @@
 package com.mrozwadowski.fuzzyminer.data.graph
 
+import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
+import com.mrozwadowski.fuzzyminer.mining.metrics.graph.NodeMetric
+
 data class Graph(
     val nodes: List<Node>,
     private val edges: Map<Node, List<Edge>>
@@ -9,7 +12,7 @@ data class Graph(
     }
 
     fun edgesTo(node: Node): Collection<Edge> {
-        return edges.flatMap { it.value }.filter { it.target == node }
+        return edges.values.flatten().filter { it.target == node }
     }
 
     fun neighbors(node: Node): Collection<Node> {
@@ -21,13 +24,19 @@ data class Graph(
     }
 
     fun allEdges(): Collection<Pair<Node, Node>> {
-        return edges.flatMap { (source, edgesFromA) ->
-            edgesFromA.map { source to it.target }
-        }
+        return allEdgeObjects().map { it.source to it.target }
     }
 
     fun allEdgeObjects(): Collection<Edge> {
         return edges.values.flatten()
+    }
+
+    fun assignMetrics(unarySignificance: NodeMetric, binarySignificance: EdgeMetric, binaryCorrelation: EdgeMetric) {
+        nodes.forEach { it.significance = unarySignificance.calculate(it) }
+        edges.values.flatten().forEach {
+            it.significance = binarySignificance.calculate(it.source, it.target)
+            it.correlation = binaryCorrelation.calculate(it.source, it.target)
+        }
     }
 
     fun withoutEdges(edgesToRemove: Collection<Pair<Node, Node>>): Graph {

@@ -30,6 +30,7 @@ class FuzzyMiner(
         graph = filterConcurrency(graph)
         graph = filterEdges(graph)
         graph = filterNodes(graph)
+        graph.assignMetrics(unarySignificance, binarySignificance, binaryCorrelation)
         return graph
     }
 
