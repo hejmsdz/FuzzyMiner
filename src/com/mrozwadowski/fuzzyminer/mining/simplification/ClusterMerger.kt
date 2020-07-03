@@ -26,13 +26,13 @@ class ClusterMerger(
 
     private fun findMergeCandidates(): Pair<NodeCluster, NodeCluster>? {
         clusters.forEach { cluster ->
-            val predecessors = graph.edgesTo(cluster).map { it.source }
+            val predecessors = edges.filter { it.second == cluster }.map { it.first }
             val predCandidate = chooseConnectedCluster(cluster, predecessors)
             if (predCandidate !== null) {
                 return@findMergeCandidates cluster to predCandidate
             }
 
-            val successors = graph.edgesFrom(cluster).map { it.target }
+            val successors = edges.filter { it.first == cluster }.map { it.second }
             val succCandidate = chooseConnectedCluster(cluster, successors)
             if (succCandidate !== null) {
                 return@findMergeCandidates cluster to succCandidate
@@ -51,7 +51,8 @@ class ClusterMerger(
 
     private fun mergeClusters(a: NodeCluster, b: NodeCluster) {
         val newCluster = a + b
-        clusters.removeAll(listOf(a, b))
+        clusters.remove(a)
+        clusters.remove(b)
         clusters.add(newCluster)
 
         edges.remove(a to b)
