@@ -5,18 +5,15 @@ import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.data.graph.NodeCluster
 
-class ClusterFilter(
-    private val graph: Graph
-) {
+class ClusterFilter(private val graph: Graph) {
     private val nodes = graph.nodes.toMutableList()
-    private val edges = graph.allEdges().toMutableList()
+    private val edges = graph.allEdgeObjects().toMutableList()
 
-    public fun apply(): Graph {
+    fun apply(): Graph {
         removeDisconnectedNodes()
         removeSingularClusters()
 
-        val edgeMap = edges.groupBy { it.first }
-            .mapValues { it.value.map { (source, target) -> Edge(source, target) } }
+        val edgeMap = edges.groupBy { it.source }
         return Graph(nodes, edgeMap)
     }
 
@@ -35,9 +32,11 @@ class ClusterFilter(
         val outgoing = edges.filter { (source, _) -> source == node }
         edges.removeAll(incoming)
         edges.removeAll(outgoing)
-        incoming.forEach { (source, _) ->
-            outgoing.forEach { (_, target) ->
-                edges.add(source to target)
+        incoming.forEach { inEdge ->
+            outgoing.forEach { outEdge ->
+                val significance = (inEdge.significance + outEdge.significance) / 2.0
+                val correlation = (inEdge.correlation + outEdge.correlation) / 2.0
+                edges.add(Edge(inEdge.source, outEdge.target, significance, correlation))
             }
         }
     }

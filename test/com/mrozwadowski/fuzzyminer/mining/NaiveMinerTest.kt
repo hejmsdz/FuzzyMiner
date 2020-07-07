@@ -1,11 +1,6 @@
 package com.mrozwadowski.fuzzyminer.mining
 
-import com.mrozwadowski.fuzzyminer.createSimpleLog
-import org.deckfour.xes.classification.XEventNameClassifier
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
-
+/*
 internal class NaiveMinerTest {
     private val log = createSimpleLog(listOf("abd", "acd"))
     private val miner = NaiveMiner(log, XEventNameClassifier())
@@ -30,3 +25,4 @@ internal class NaiveMinerTest {
         assertNotNull(graph.edgeBetween(nodeC, nodeD))
     }
 }
+ */

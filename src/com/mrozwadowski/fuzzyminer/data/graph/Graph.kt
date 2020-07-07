@@ -9,7 +9,7 @@ data class Graph(
     }
 
     fun edgesTo(node: Node): Collection<Edge> {
-        return edges.flatMap { it.value }.filter { it.target == node }
+        return edges.values.flatten().filter { it.target == node }
     }
 
     fun neighbors(node: Node): Collection<Node> {
@@ -21,9 +21,7 @@ data class Graph(
     }
 
     fun allEdges(): Collection<Pair<Node, Node>> {
-        return edges.flatMap { (source, edgesFromA) ->
-            edgesFromA.map { source to it.target }
-        }
+        return allEdgeObjects().map { it.source to it.target }
     }
 
     fun allEdgeObjects(): Collection<Edge> {
@@ -31,9 +29,9 @@ data class Graph(
     }
 
     fun withoutEdges(edgesToRemove: Collection<Pair<Node, Node>>): Graph {
-        val preservedEdges = (allEdges() - edgesToRemove)
-            .groupBy { it.first }
-            .mapValues { it.value.map { (source, target) -> Edge(source, target) } }
+        val preservedEdges = allEdgeObjects()
+            .filter { !edgesToRemove.contains(it.source to it.target) }
+            .groupBy { it.source }
 
         return Graph(nodes, preservedEdges)
     }

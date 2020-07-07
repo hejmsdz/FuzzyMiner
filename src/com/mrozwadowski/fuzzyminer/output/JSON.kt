@@ -41,6 +41,7 @@ class JSON(private val graph: Graph) {
             val obj = JsonObject()
             obj.addProperty("id", node.id)
             obj.addProperty("label", node.toString())
+            obj.addProperty("significance", node.significance)
             return obj
         }
     }
@@ -53,6 +54,8 @@ class JSON(private val graph: Graph) {
             val obj = JsonObject()
             obj.addProperty("from", edge.source.id)
             obj.addProperty("to", edge.target.id)
+            obj.addProperty("significance", edge.significance)
+            obj.addProperty("correlation", edge.correlation)
             return obj
         }
     }

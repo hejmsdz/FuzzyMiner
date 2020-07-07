@@ -4,38 +4,44 @@ import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.data.graph.PrimitiveNode
-import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryFrequency
+import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventClassifier
 import org.deckfour.xes.model.XLog
 
+
 class NaiveMiner(
     private val log: XLog,
-    private val eventClasses: XEventClasses
+    private val eventClasses: XEventClasses,
+    private val metrics: MetricsStore
 ) {
-    constructor(log: XLog, classifier: XEventClassifier):
-            this(log, XEventClasses.deriveEventClasses(classifier, log))
+    constructor(log: XLog, classifier: XEventClassifier, metrics: MetricsStore):
+            this(log, XEventClasses.deriveEventClasses(classifier, log), metrics)
 
     fun mine(): Graph {
-        val activitiesToNodes = getActivitiesToNodes()
-        val nodes = activitiesToNodes.values.toList()
-        val edges = getEdges(activitiesToNodes)
-        return Graph(nodes, edges)
+        metrics.calculateFromLog(log, eventClasses)
+
+        val nodes = getNodes()
+        val edges = getEdges(nodes)
+        return Graph(nodes.values.toList(), edges)
     }
 
-    private fun getActivitiesToNodes(): Map<XEventClass, Node> {
-        return eventClasses.classes.associateWith { PrimitiveNode(it) }
+    private fun getNodes(): Map<XEventClass, Node> {
+        return metrics.aggregateUnarySignificance.mapValues { (eventClass, significance) ->
+            PrimitiveNode(eventClass, significance)
+        }
     }
 
-    private fun getEdges(activitiesToNodes: Map<XEventClass, Node>):
-            Map<Node, List<Edge>> {
+    private fun getEdges(nodes: Map<XEventClass, Node>): Map<Node, List<Edge>> {
         val edges = mutableMapOf<Node, MutableList<Edge>>()
-        BinaryFrequency(log, eventClasses).allPairs().forEach { (source, target) ->
-            val sourceNode = activitiesToNodes.getValue(source)
-            val targetNode = activitiesToNodes.getValue(target)
+        metrics.aggregateBinarySignificance.forEach { (eventClasses, significance) ->
+            val sourceNode = nodes.getValue(eventClasses.first)
+            val targetNode = nodes.getValue(eventClasses.second)
             val edgesForNode = edges.getOrPut(sourceNode, { mutableListOf() })
-            edgesForNode.add(Edge(sourceNode, targetNode))
+            val correlation = metrics.aggregateBinaryCorrelation.getOrDefault(eventClasses, 0.0)
+            val edge = Edge(sourceNode, targetNode, significance, correlation)
+            edgesForNode.add(edge)
         }
         return edges
     }

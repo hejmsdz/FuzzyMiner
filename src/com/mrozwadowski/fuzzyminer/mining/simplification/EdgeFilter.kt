@@ -3,13 +3,8 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
-import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
 
-class EdgeFilter(
-    private val graph: Graph,
-    private val binSignificance: EdgeMetric,
-    private val binCorrelation: EdgeMetric
-) {
+class EdgeFilter(private val graph: Graph) {
     fun apply(utilityRatio: Double, cutoff: Double): Graph {
         val edgesToRemove = graph.nodes
             .map { graph.edgesFrom(it) }
@@ -35,8 +30,7 @@ class EdgeFilter(
     }
 
     private fun utility(a: Node, b: Node, utilityRatio: Double): Double {
-        val significance = binSignificance.calculate(a, b)
-        val correlation = binCorrelation.calculate(a, b)
-        return utilityRatio * significance + (1 - utilityRatio) * correlation
+        val edge = graph.edgeBetween(a, b) ?: return 0.0
+        return utilityRatio * edge.significance + (1 - utilityRatio) * edge.correlation
     }
 }
