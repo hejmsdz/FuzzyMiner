@@ -23,15 +23,7 @@ class FuzzyMiner(
         graph = filterConcurrency(graph)
         graph = filterEdges(graph)
         graph = filterNodes(graph)
-        sanityCheck("cluster filtering", graph)
         return graph
-    }
-
-    private fun sanityCheck(stage: String, graph: Graph) {
-        val edges = graph.allEdgeObjects()
-        val significantEdges = edges.count { it.significance > 0 }
-        val correlatedEdges = edges.count { it.significance > 0 }
-        println("$stage: ${edges.size} total, $significantEdges significant, $correlatedEdges correlated")
     }
 
     private fun filterConcurrency(graph: Graph): Graph {
@@ -47,10 +39,8 @@ class FuzzyMiner(
     private fun filterNodes(graph: Graph): Graph {
         val filter1 = VictimClusterer(graph)
         val graph1 = filter1.apply(parameters.nodeCutoff)
-        sanityCheck("first clustering", graph1)
         val filter2 = ClusterMerger(graph1)
         val graph2 = filter2.apply()
-        sanityCheck("cluster merging", graph2)
         val filter3 = ClusterFilter(graph2)
         return filter3.apply()
     }

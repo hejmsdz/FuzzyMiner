@@ -31,11 +31,6 @@ fun main() {
     val http: Http = ignite()
     enableCORS(http, "*", "POST", null)
 
-    http.get("/logs") {
-        val filenames = File("sampleData").listFiles().map { it.name }
-        Gson().toJson(filenames)
-    }
-
     http.post("/mine") {
         val log = getLogReader(File("sampleData/journal_review.xes")).readLog()
         val classifier = XEventNameClassifier()

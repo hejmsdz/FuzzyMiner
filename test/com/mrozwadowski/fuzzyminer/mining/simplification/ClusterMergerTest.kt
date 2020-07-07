@@ -33,15 +33,6 @@ internal class ClusterMergerTest {
         )
     )
 
-    /*
-    private class MockCorrelation: BinaryMetric {
-        val values = mapOf(("b1" to "c1") to 0.5)
-        override fun calculate(class1: XEventClass, class2: XEventClass): Double {
-            return values.getOrDefault(class1.id to class2.id, 0.0)
-        }
-    }
-     */
-
     private val clusterMerger = ClusterMerger(graph)
 
     @Test
