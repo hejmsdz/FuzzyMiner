@@ -4,11 +4,9 @@ import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.NodeCluster
 import com.mrozwadowski.fuzzyminer.data.graph.PrimitiveNode
-import com.mrozwadowski.fuzzyminer.mining.metrics.BinaryMetric
-import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
 import org.deckfour.xes.classification.XEventClass
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 
 internal class ClusterMergerTest {
     private val a = NodeCluster(listOf(
@@ -35,14 +33,16 @@ internal class ClusterMergerTest {
         )
     )
 
+    /*
     private class MockCorrelation: BinaryMetric {
         val values = mapOf(("b1" to "c1") to 0.5)
         override fun calculate(class1: XEventClass, class2: XEventClass): Double {
             return values.getOrDefault(class1.id to class2.id, 0.0)
         }
     }
+     */
 
-    private val clusterMerger = ClusterMerger(graph, EdgeMetric(MockCorrelation()))
+    private val clusterMerger = ClusterMerger(graph)
 
     @Test
     fun apply() {

@@ -3,8 +3,8 @@ package com.mrozwadowski.fuzzyminer.mining.metrics
 import com.mrozwadowski.fuzzyminer.createLog
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventNameClassifier
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 
 internal class EndpointCorrelationTest {
     private val a = "request analysis"
@@ -26,10 +26,14 @@ internal class EndpointCorrelationTest {
 
     @Test
     fun calculate() {
-        val ec = EndpointCorrelation()
-        assertEquals(0.5625, ec.calculate(aClass, bClass), 0.0001)
-        assertEquals(0.2941, ec.calculate(aClass, cClass), 0.0001)
-        assertEquals(0.1250, ec.calculate(aClass, dClass), 0.0001)
+        val metrics = MetricsStore(mapOf(), mapOf(), mapOf(EndpointCorrelation() to 1.0))
+        metrics.calculateFromLog(log, classes)
+        val correlation = metrics.aggregateBinaryCorrelation
+
+        assertEquals(0.5625, correlation[aClass to bClass]!!, 0.0001)
+        assertEquals(0.2941, correlation[aClass to cClass]!!, 0.0001)
+        assertEquals(1.0000, correlation[bClass to bClass]!!, 0.0001)
+        assertEquals(0.1250, correlation[bClass to dClass]!!, 0.0001)
     }
 
     @Test

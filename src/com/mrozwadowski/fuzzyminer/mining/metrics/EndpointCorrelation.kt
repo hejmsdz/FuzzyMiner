@@ -1,11 +1,12 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-import org.deckfour.xes.classification.XEventClass
+import org.deckfour.xes.model.XAttributeLiteral
+import org.deckfour.xes.model.XEvent
 
-class EndpointCorrelation : BinaryMetric {
-    override fun calculate(class1: XEventClass, class2: XEventClass): Double {
-        val name1 = class1.toString()
-        val name2 = class2.toString()
+class EndpointCorrelation: LogBasedBinaryMetric(normalize = true) {
+    override fun evaluate(previousEvent: XEvent, event: XEvent): Double {
+        val name1 = (previousEvent.attributes["concept:name"] as XAttributeLiteral).value
+        val name2 = (event.attributes["concept:name"] as XAttributeLiteral).value
         val distance = levenshtein(name1, name2).toDouble()
         val length = maxOf(name1.length, name2.length)
         return 1 - (distance / length)

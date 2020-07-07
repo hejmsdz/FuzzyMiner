@@ -1,16 +1,20 @@
-package com.mrozwadowski.fuzzyminer.mining.metrics.updated
+package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import org.deckfour.xes.classification.XEventClass
+import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.model.XEvent
+import org.deckfour.xes.model.XLog
 
 interface Metric {}
+
+typealias XEventClassPair = Pair<XEventClass, XEventClass>
 
 abstract class UnaryMetric: Metric {
     val values = mutableMapOf<XEventClass, Double>()
 }
 
 abstract class BinaryMetric: Metric {
-    val values = mutableMapOf<Pair<XEventClass, XEventClass>, Double>()
+    val values = mutableMapOf<XEventClassPair, Double>()
 }
 
 abstract class LogBasedUnaryMetric: UnaryMetric() {
@@ -21,21 +25,33 @@ abstract class LogBasedUnaryMetric: UnaryMetric() {
     }
 }
 
-abstract class LogBasedBinaryMetric: BinaryMetric() {
+abstract class LogBasedBinaryMetric(private val normalize: Boolean): BinaryMetric() {
+    private val normalizationFactors = mutableMapOf<XEventClassPair, Double>()
+
     abstract fun evaluate(previousEvent: XEvent, event: XEvent): Double
 
     fun processRelation(previousEvent: XEvent, previousEventClass: XEventClass, event: XEvent, eventClass: XEventClass, attenuation: Double) {
         val key = previousEventClass to eventClass
         values[key] = values.getOrDefault(key, 0.0) + evaluate(previousEvent, event) * attenuation
+
+        if (normalize) {
+            normalizationFactors.compute(key) { _, value -> (value ?: 0.0) + attenuation }
+        }
+    }
+
+    fun applyNormalization() {
+        if (normalize) {
+            values.mapValuesTo(values) { (key, value) -> value / normalizationFactors.getOrDefault(key, 1.0) }
+        }
     }
 }
 
 abstract class DerivedUnaryMetric: UnaryMetric() {
-    abstract fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<Pair<XEventClass, XEventClass>, Double>, binaryCorrelation: Map<Pair<XEventClass, XEventClass>, Double>)
+    abstract fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<XEventClassPair, Double>, binaryCorrelation: Map<XEventClassPair, Double>)
 }
 
 abstract class DerivedBinaryMetric: BinaryMetric() {
-    abstract fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<Pair<XEventClass, XEventClass>, Double>, binaryCorrelation: Map<Pair<XEventClass, XEventClass>, Double>)
+    abstract fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<XEventClassPair, Double>, binaryCorrelation: Map<XEventClassPair, Double>)
 }
 
 class MetricsStore(
@@ -49,18 +65,34 @@ class MetricsStore(
     private val logBasedBinaryMetrics = metrics.filterIsInstance<LogBasedBinaryMetric>()
 
     val aggregateUnarySignificance = mutableMapOf<XEventClass, Double>()
-    val aggregateBinarySignificance = mutableMapOf<Pair<XEventClass, XEventClass>, Double>()
-    val aggregateBinaryCorrelation = mutableMapOf<Pair<XEventClass, XEventClass>, Double>()
+    val aggregateBinarySignificance = mutableMapOf<XEventClassPair, Double>()
+    val aggregateBinaryCorrelation = mutableMapOf<XEventClassPair, Double>()
 
-    fun processEvent(event: XEvent, eventClass: XEventClass) {
+    fun calculateFromLog(log: XLog, eventClasses: XEventClasses) {
+        log.forEach { trace ->
+            trace.withIndex().forEach { (i, event) ->
+                val eventClass = eventClasses.getClassOf(event)
+                processEvent(event, eventClass)
+
+                if (i >= 1) {
+                    val previousEvent = trace[i - 1]
+                    val previousEventClass = eventClasses.getClassOf(previousEvent)
+                    processRelation(previousEvent, previousEventClass, event, eventClass, 1.0)
+                }
+            }
+        }
+        calculateDerivedMetrics()
+    }
+
+    private fun processEvent(event: XEvent, eventClass: XEventClass) {
         logBasedUnaryMetrics.forEach { it.processEvent(event, eventClass) }
     }
 
-    fun processRelation(previousEvent: XEvent, previousEventClass: XEventClass, event: XEvent, eventClass: XEventClass, attenuation: Double) {
+    private fun processRelation(previousEvent: XEvent, previousEventClass: XEventClass, event: XEvent, eventClass: XEventClass, attenuation: Double) {
         logBasedBinaryMetrics.forEach { it.processRelation(previousEvent, previousEventClass, event, eventClass, attenuation) }
     }
 
-    fun calculateDerivedMetrics() {
+    private fun calculateDerivedMetrics() {
         aggregateLogBasedMetrics()
 
         unarySignificance.keys.filterIsInstance<DerivedUnaryMetric>().forEach { metric ->
@@ -90,11 +122,13 @@ class MetricsStore(
 
         binarySignificance.keys.filterIsInstance<LogBasedBinaryMetric>().forEach { metric ->
             val weight = binarySignificance[metric] ?: return@forEach
+            metric.applyNormalization()
             addMaps(aggregateBinarySignificance, normalize(metric.values, weight))
         }
 
         binaryCorrelation.keys.filterIsInstance<LogBasedBinaryMetric>().forEach { metric ->
             val weight = binaryCorrelation[metric] ?: return@forEach
+            metric.applyNormalization()
             addMaps(aggregateBinaryCorrelation, normalize(metric.values, weight))
         }
     }
@@ -109,5 +143,4 @@ class MetricsStore(
             target.compute(key) { _, value -> (value ?: 0.0) + addValue }
         }
     }
-
 }

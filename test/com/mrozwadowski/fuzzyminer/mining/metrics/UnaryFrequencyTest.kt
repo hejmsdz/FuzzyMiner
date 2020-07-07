@@ -3,7 +3,7 @@ package com.mrozwadowski.fuzzyminer.mining.metrics
 import com.mrozwadowski.fuzzyminer.createSimpleLog
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventNameClassifier
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class UnaryFrequencyTest {
@@ -17,10 +17,13 @@ internal class UnaryFrequencyTest {
 
     @Test
     fun calculate() {
-        val metric = UnaryFrequency(log, classes)
-        assertEquals(0.75, metric.calculate(a))
-        assertEquals(1.0, metric.calculate(b))
-        assertEquals(0.25, metric.calculate(c))
-        assertEquals(0.5, metric.calculate(d))
+        val metrics = MetricsStore(mapOf(UnaryFrequency() to 1.0), mapOf(), mapOf())
+        metrics.calculateFromLog(log, classes)
+        val significance = metrics.aggregateUnarySignificance
+
+        assertEquals(0.75, significance[a])
+        assertEquals(1.0, significance[b])
+        assertEquals(0.25, significance[c])
+        assertEquals(0.5, significance[d])
     }
 }

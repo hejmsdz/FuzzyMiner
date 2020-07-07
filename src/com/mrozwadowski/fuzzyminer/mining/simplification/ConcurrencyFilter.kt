@@ -2,17 +2,13 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
-import com.mrozwadowski.fuzzyminer.mining.metrics.graph.EdgeMetric
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.abs
 
 typealias NodePairs = Collection<Pair<Node, Node>>
 
-class ConcurrencyFilter(
-    private val graph: Graph,
-    private val binSignificance: EdgeMetric
-) {
+class ConcurrencyFilter(private val graph: Graph) {
     private val logger = Logger.getLogger(javaClass.name)
 
     fun apply(preserveThreshold: Double, ratioThreshold: Double): Graph {
@@ -63,9 +59,9 @@ class ConcurrencyFilter(
     }
 
     private fun relativeSignificance(a: Node, b: Node): Double {
-        val abSignificance = binSignificance.calculate(a, b) * 0.5
-        val axSignificance = graph.nodes.sumByDouble { binSignificance.calculate(a, it) }
-        val xbSignificance = graph.nodes.sumByDouble { binSignificance.calculate(it, b) }
+        val abSignificance = (graph.edgeBetween(a, b)?.significance ?: 0.0) * 0.5
+        val axSignificance = graph.nodes.sumByDouble { graph.edgeBetween(a, it)?.significance ?: 0.0 }
+        val xbSignificance = graph.nodes.sumByDouble { graph.edgeBetween(it, b)?.significance ?: 0.0 }
         return 0.5 * abSignificance * ((1 / axSignificance) + (1 / xbSignificance))
     }
 }

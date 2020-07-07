@@ -3,9 +3,9 @@ package com.mrozwadowski.fuzzyminer.mining.metrics
 import com.mrozwadowski.fuzzyminer.createSimpleLog
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventNameClassifier
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
+import kotlin.test.assertNull
 
 internal class BinaryFrequencyTest {
     private val log = createSimpleLog(listOf("abd", "ac", "abbbd"))
@@ -18,11 +18,14 @@ internal class BinaryFrequencyTest {
 
     @Test
     fun calculate() {
-        val metric = BinaryFrequency(log, classes)
-        assertEquals(1.0, metric.calculate(a, b))
-        assertEquals(0.5, metric.calculate(a, c))
-        assertEquals(1.0, metric.calculate(b, b))
-        assertEquals(1.0, metric.calculate(b, d))
-        assertEquals(0.0, metric.calculate(a, d))
+        val metrics = MetricsStore(mapOf(), mapOf(BinaryFrequency() to 1.0), mapOf())
+        metrics.calculateFromLog(log, classes)
+        val significance = metrics.aggregateBinarySignificance
+
+        assertEquals(1.0, significance[a to b])
+        assertEquals(0.5, significance[a to c])
+        assertEquals(1.0, significance[b to b])
+        assertEquals(1.0, significance[b to d])
+        assertNull(significance[a to d])
     }
 }
