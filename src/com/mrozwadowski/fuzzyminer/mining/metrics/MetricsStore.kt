@@ -119,6 +119,7 @@ class MetricsStore(
     private fun calculateDerivedMetrics() {
         aggregateLogBasedMetrics()
 
+
         unarySignificance.keys.filterIsInstance<DerivedUnaryMetric>().forEach { metric ->
             val weight = unarySignificance[metric] ?: return@forEach
             metric.setLogBasedWeights(logBasedUnarySignificanceWeight, logBasedBinarySignificanceWeight, logBasedBinaryCorrelationWeight)

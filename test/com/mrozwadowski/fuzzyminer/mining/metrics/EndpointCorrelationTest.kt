@@ -35,11 +35,4 @@ internal class EndpointCorrelationTest {
         assertEquals(1.0000, correlation[bClass to bClass]!!, 0.0001)
         assertEquals(0.1250, correlation[bClass to dClass]!!, 0.0001)
     }
-
-    @Test
-    fun levenshtein() {
-        assertEquals(0, EndpointCorrelation.levenshtein("banana", "banana"))
-        assertEquals(3, EndpointCorrelation.levenshtein("kitten", "sitting"))
-        assertEquals(5, EndpointCorrelation.levenshtein("intention", "execution"))
-    }
 }
