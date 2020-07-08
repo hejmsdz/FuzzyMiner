@@ -1,6 +1,6 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-import com.mrozwadowski.fuzzyminer.mining.metrics.attenuation.NRootAttenuation
+import com.mrozwadowski.fuzzyminer.mining.metrics.attenuation.Attenuation
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.model.XEvent
@@ -78,10 +78,9 @@ abstract class DerivedBinaryMetric: BinaryMetric() {
 class MetricsStore(
     private val unarySignificance: Map<Metric, Double>,
     private val binarySignificance: Map<Metric, Double>,
-    private val binaryCorrelation: Map<Metric, Double>
+    private val binaryCorrelation: Map<Metric, Double>,
+    private val attenuation: Attenuation?
 ) {
-    private val attenuation = NRootAttenuation(2.7, 5)
-
     private val metrics = unarySignificance.keys + binarySignificance.keys + binaryCorrelation.keys
     private val logBasedUnaryMetrics = metrics.filterIsInstance<LogBasedUnaryMetric>()
     private val logBasedBinaryMetrics = metrics.filterIsInstance<LogBasedBinaryMetric>()
@@ -95,7 +94,7 @@ class MetricsStore(
     var logBasedBinaryCorrelationWeight = 0.0
 
     fun calculateFromLog(log: XLog, eventClasses: XEventClasses) {
-        val maxDistance = attenuation.maxDistance
+        val maxDistance = if (attenuation == null) 1 else attenuation.maxDistance
 
         log.forEach { trace ->
             trace.withIndex().forEach { (i, event) ->
@@ -106,7 +105,7 @@ class MetricsStore(
                 for (distance in 1..lookBack) {
                     val previousEvent = trace[i - distance]
                     val previousEventClass = eventClasses.getClassOf(previousEvent)
-                    processRelation(previousEvent, previousEventClass, event, eventClass, attenuation.factor(distance))
+                    processRelation(previousEvent, previousEventClass, event, eventClass, attenuation?.factor(distance) ?: 1.0)
                 }
             }
         }

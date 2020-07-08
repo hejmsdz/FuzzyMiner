@@ -18,7 +18,7 @@ internal class BinaryFrequencyTest {
 
     @Test
     fun calculate() {
-        val metrics = MetricsStore(mapOf(), mapOf(BinaryFrequency() to 1.0), mapOf())
+        val metrics = MetricsStore(mapOf(), mapOf(BinaryFrequency() to 1.0), mapOf(), null)
         metrics.calculateFromLog(log, classes)
         val significance = metrics.aggregateBinarySignificance
 

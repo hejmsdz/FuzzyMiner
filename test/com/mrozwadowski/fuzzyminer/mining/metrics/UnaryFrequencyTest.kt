@@ -17,7 +17,7 @@ internal class UnaryFrequencyTest {
 
     @Test
     fun calculate() {
-        val metrics = MetricsStore(mapOf(UnaryFrequency() to 1.0), mapOf(), mapOf())
+        val metrics = MetricsStore(mapOf(UnaryFrequency() to 1.0), mapOf(), mapOf(), null)
         metrics.calculateFromLog(log, classes)
         val significance = metrics.aggregateUnarySignificance
 

@@ -26,7 +26,7 @@ internal class EndpointCorrelationTest {
 
     @Test
     fun calculate() {
-        val metrics = MetricsStore(mapOf(), mapOf(), mapOf(EndpointCorrelation() to 1.0))
+        val metrics = MetricsStore(mapOf(), mapOf(), mapOf(EndpointCorrelation() to 1.0), null)
         metrics.calculateFromLog(log, classes)
         val correlation = metrics.aggregateBinaryCorrelation
 

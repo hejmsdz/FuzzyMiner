@@ -21,7 +21,8 @@ internal class DistanceSignificanceTest {
         val metrics = MetricsStore(
             mapOf(UnaryFrequency() to 1.0),
             mapOf(BinaryFrequency() to 0.6, metric to 0.4),
-            mapOf()
+            mapOf(),
+            null
         )
         metrics.calculateFromLog(log, classes)
         val distanceSignificance = metric.values
