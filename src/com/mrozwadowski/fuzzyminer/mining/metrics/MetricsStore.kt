@@ -1,5 +1,6 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
+import com.mrozwadowski.fuzzyminer.mining.metrics.attenuation.NRootAttenuation
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.model.XEvent
@@ -79,6 +80,7 @@ class MetricsStore(
     private val binarySignificance: Map<Metric, Double>,
     private val binaryCorrelation: Map<Metric, Double>
 ) {
+    private val attenuation = NRootAttenuation(2.7, 5)
 
     private val metrics = unarySignificance.keys + binarySignificance.keys + binaryCorrelation.keys
     private val logBasedUnaryMetrics = metrics.filterIsInstance<LogBasedUnaryMetric>()
@@ -93,15 +95,18 @@ class MetricsStore(
     var logBasedBinaryCorrelationWeight = 0.0
 
     fun calculateFromLog(log: XLog, eventClasses: XEventClasses) {
+        val maxDistance = attenuation.maxDistance
+
         log.forEach { trace ->
             trace.withIndex().forEach { (i, event) ->
                 val eventClass = eventClasses.getClassOf(event)
                 processEvent(event, eventClass)
 
-                if (i >= 1) {
-                    val previousEvent = trace[i - 1]
+                val lookBack = minOf(maxDistance ?: i, i)
+                for (distance in 1..lookBack) {
+                    val previousEvent = trace[i - distance]
                     val previousEventClass = eventClasses.getClassOf(previousEvent)
-                    processRelation(previousEvent, previousEventClass, event, eventClass, 1.0)
+                    processRelation(previousEvent, previousEventClass, event, eventClass, attenuation.factor(distance))
                 }
             }
         }
