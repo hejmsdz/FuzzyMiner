@@ -7,6 +7,7 @@ fun defaultMetrics(): MetricsStore = MetricsStore(mapOf(
     BinaryFrequency() to 0.7,
     DistanceSignificance() to 0.3
 ), mapOf(
-    EndpointCorrelation() to 0.5,
-    OriginatorCorrelation() to 0.5
+    EndpointCorrelation() to 0.4,
+    OriginatorCorrelation() to 0.4,
+    ProximityCorrelation() to 0.2
 ))
