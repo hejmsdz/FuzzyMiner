@@ -123,27 +123,44 @@ class MetricsStore(
     private fun calculateDerivedMetrics() {
         aggregateLogBasedMetrics()
 
-
+        val derivedUnarySignificance = mutableMapOf<XEventClass, Double>()
         unarySignificance.keys.filterIsInstance<DerivedUnaryMetric>().forEach { metric ->
             val weight = unarySignificance[metric] ?: return@forEach
-            metric.setLogBasedWeights(logBasedUnarySignificanceWeight, logBasedBinarySignificanceWeight, logBasedBinaryCorrelationWeight)
+            metric.setLogBasedWeights(
+                logBasedUnarySignificanceWeight,
+                logBasedBinarySignificanceWeight,
+                logBasedBinaryCorrelationWeight
+            )
             metric.calculate(aggregateUnarySignificance, aggregateBinarySignificance, aggregateBinaryCorrelation)
-            addMaps(aggregateUnarySignificance, normalize(metric.values, weight))
+            addMaps(derivedUnarySignificance, normalize(metric.values, weight))
         }
+        addMaps(aggregateUnarySignificance, derivedUnarySignificance)
 
+        val derivedBinarySignificance = mutableMapOf<XEventClassPair, Double>()
         binarySignificance.keys.filterIsInstance<DerivedBinaryMetric>().forEach { metric ->
             val weight = binarySignificance[metric] ?: return@forEach
-            metric.setLogBasedWeights(logBasedUnarySignificanceWeight, logBasedBinarySignificanceWeight, logBasedBinaryCorrelationWeight)
+            metric.setLogBasedWeights(
+                logBasedUnarySignificanceWeight,
+                logBasedBinarySignificanceWeight,
+                logBasedBinaryCorrelationWeight
+            )
             metric.calculate(aggregateUnarySignificance, aggregateBinarySignificance, aggregateBinaryCorrelation)
-            addMaps(aggregateBinarySignificance, normalize(metric.values, weight))
+            addMaps(derivedBinarySignificance, normalize(metric.values, weight))
         }
+        addMaps(aggregateBinarySignificance, derivedBinarySignificance)
 
+        val derivedBinaryCorrelation = mutableMapOf<XEventClassPair, Double>()
         binaryCorrelation.keys.filterIsInstance<DerivedBinaryMetric>().forEach { metric ->
             val weight = binaryCorrelation[metric] ?: return@forEach
-            metric.setLogBasedWeights(logBasedUnarySignificanceWeight, logBasedBinarySignificanceWeight, logBasedBinaryCorrelationWeight)
+            metric.setLogBasedWeights(
+                logBasedUnarySignificanceWeight,
+                logBasedBinarySignificanceWeight,
+                logBasedBinaryCorrelationWeight
+            )
             metric.calculate(aggregateUnarySignificance, aggregateBinarySignificance, aggregateBinaryCorrelation)
-            addMaps(aggregateBinaryCorrelation, normalize(metric.values, weight))
+            addMaps(derivedBinaryCorrelation, normalize(metric.values, weight))
         }
+        addMaps(aggregateBinaryCorrelation, derivedBinaryCorrelation)
     }
 
     private fun aggregateLogBasedMetrics() {
