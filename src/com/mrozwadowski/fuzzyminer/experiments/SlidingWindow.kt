@@ -34,26 +34,3 @@ class SlidingWindow(
         return fragment
     }
 }
-
-/*
-fun run(miner: OnlineMiner, log: XLog): Graph {
-    val fragments = splitLog(log, 4)
-
-    var model: Graph? = null
-    fragments.forEach { fragment ->
-        model = miner.mine(model, fragment)
-    }
-    return model!!
-}
-
-private fun splitLog(log: XLog, numFragments: Int): List<XLog> {
-    val fragmentSize = ceil(log.size / numFragments.toDouble()).toInt()
-    val factory = XFactoryNaiveImpl()
-
-    return log.chunked(fragmentSize) { traces ->
-        val fragment = factory.createLog(log.attributes)
-        fragment.addAll(traces)
-        fragment
-    }
-}
- */
