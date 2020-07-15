@@ -33,9 +33,9 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="com.google.code.gson:gson:2.8.6" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="com.sparkjava:spark-kotlin:1.0.0-alpha" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.8.6" level="project" />
+    <orderEntry type="library" name="com.google.guava:guava:18.0" level="project" />
   </component>
 </module>
