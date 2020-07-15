@@ -18,12 +18,12 @@ class VictimClusterer(private val graph: Graph) {
         return Graph(primitives + clusters, edgeMap)
     }
 
-    private fun findVictims(cutoff: Double): Collection<Node> {
-        return graph.nodes.filter { it.significance < cutoff }
+    private fun findVictims(cutoff: Double): Collection<PrimitiveNode> {
+        return graph.nodes.filterIsInstance<PrimitiveNode>().filter { it.significance < cutoff }
     }
 
-    private fun assignInitialClusters(victims: Collection<Node>): Map<Node, Int> {
-        val assignment = mutableMapOf<Node, Int>()
+    private fun assignInitialClusters(victims: Collection<PrimitiveNode>): Map<PrimitiveNode, Int> {
+        val assignment = mutableMapOf<PrimitiveNode, Int>()
         var nextCluster = 1
 
         victims.forEach { victim ->
@@ -35,7 +35,7 @@ class VictimClusterer(private val graph: Graph) {
         return assignment
     }
 
-    private fun clustersFromAssignment(assignment: Map<Node, Int>): Collection<NodeCluster> {
+    private fun clustersFromAssignment(assignment: Map<PrimitiveNode, Int>): Collection<NodeCluster> {
         return assignment.entries
             .groupBy { it.value }
             .values
