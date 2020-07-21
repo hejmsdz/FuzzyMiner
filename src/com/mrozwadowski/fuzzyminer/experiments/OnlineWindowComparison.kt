@@ -9,8 +9,8 @@ import org.deckfour.xes.classification.XEventNameClassifier
 import java.io.File
 
 fun main() {
-    val log = getLogReader(File("sampleData/simple.csv")).readLog()
-    val window = SlidingWindow(log, windowSize = 3, stride = 2)
+    val log = getLogReader(File("sampleData/journal_review.xes")).readLog()
+    val window = SlidingWindow(log, windowSize = 20, stride = 5)
 
     val classifier = XEventNameClassifier()
     val metrics = minimalMetrics()
@@ -22,7 +22,6 @@ fun main() {
         onlineMiner.unlearn(window.outgoing(step))
     }
 
-    println(metrics.normalizationFactors)
     printMetrics(metrics)
 
     val lastFragment = window.fragment(window.steps().last)
