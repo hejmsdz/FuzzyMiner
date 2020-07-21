@@ -45,10 +45,12 @@ abstract class LogBasedBinaryMetric(val normalize: Boolean): BinaryMetric() {
     }
 }
 
-abstract class DerivedUnaryMetric: UnaryMetric() {
-    var logBasedUnarySignificanceWeight = 0.0
-    var logBasedBinarySignificanceWeight = 0.0
-    var logBasedBinaryCorrelationWeight = 0.0
+interface DerivedMetric<K> {
+    val values: Map<K, Double>
+
+    var logBasedUnarySignificanceWeight: Double
+    var logBasedBinarySignificanceWeight: Double
+    var logBasedBinaryCorrelationWeight: Double
 
     fun setLogBasedWeights(unarySignificance: Double, binarySignificance: Double, binaryCorrelation: Double) {
         logBasedUnarySignificanceWeight = unarySignificance
@@ -56,21 +58,19 @@ abstract class DerivedUnaryMetric: UnaryMetric() {
         logBasedBinaryCorrelationWeight = binaryCorrelation
     }
 
-    abstract fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<XEventClassPair, Double>, binaryCorrelation: Map<XEventClassPair, Double>)
+    fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<XEventClassPair, Double>, binaryCorrelation: Map<XEventClassPair, Double>)
 }
 
-abstract class DerivedBinaryMetric: BinaryMetric() {
-    var logBasedUnarySignificanceWeight = 0.0
-    var logBasedBinarySignificanceWeight = 0.0
-    var logBasedBinaryCorrelationWeight = 0.0
+abstract class DerivedUnaryMetric: UnaryMetric(), DerivedMetric<XEventClass> {
+    override var logBasedUnarySignificanceWeight = 0.0
+    override var logBasedBinarySignificanceWeight = 0.0
+    override var logBasedBinaryCorrelationWeight = 0.0
+}
 
-    fun setLogBasedWeights(unarySignificance: Double, binarySignificance: Double, binaryCorrelation: Double) {
-        logBasedUnarySignificanceWeight = unarySignificance
-        logBasedBinarySignificanceWeight = binarySignificance
-        logBasedBinaryCorrelationWeight = binaryCorrelation
-    }
-
-    abstract fun calculate(unarySignificance: Map<XEventClass, Double>, binarySignificance: Map<XEventClassPair, Double>, binaryCorrelation: Map<XEventClassPair, Double>)
+abstract class DerivedBinaryMetric: BinaryMetric(), DerivedMetric<XEventClassPair> {
+    override var logBasedUnarySignificanceWeight = 0.0
+    override var logBasedBinarySignificanceWeight = 0.0
+    override var logBasedBinaryCorrelationWeight = 0.0
 }
 
 class MetricsStore(
@@ -85,25 +85,11 @@ class MetricsStore(
 
     val normalizationFactors = mutableMapOf<XEventClassPair, Double>()
 
-    val aggregateUnarySignificance = mutableMapOf<XEventClass, Double>()
-    val aggregateBinarySignificance = mutableMapOf<XEventClassPair, Double>()
-    val aggregateBinaryCorrelation = mutableMapOf<XEventClassPair, Double>()
+    var aggregateUnarySignificance = mutableMapOf<XEventClass, Double>()
+    var aggregateBinarySignificance = mutableMapOf<XEventClassPair, Double>()
+    var aggregateBinaryCorrelation = mutableMapOf<XEventClassPair, Double>()
 
-    var logBasedUnarySignificanceWeight = 0.0
-    var logBasedBinarySignificanceWeight = 0.0
-    var logBasedBinaryCorrelationWeight = 0.0
-
-    fun reset() {
-//        metrics.forEach { it.reset() }
-        aggregateUnarySignificance.clear()
-        aggregateBinarySignificance.clear()
-        aggregateBinaryCorrelation.clear()
-//        normalizationFactors.clear()
-
-        logBasedUnarySignificanceWeight = 0.0
-        logBasedBinarySignificanceWeight = 0.0
-        logBasedBinaryCorrelationWeight = 0.0
-    }
+    private val aggregator = MetricsAggregator(unarySignificance, binarySignificance, binaryCorrelation, normalizationFactors)
 
     fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Double = 1.0) {
         val maxDistance = if (attenuation == null) 1 else attenuation.maxDistance
@@ -159,86 +145,28 @@ class MetricsStore(
     }
 
     private fun calculateDerivedMetrics() {
-        aggregateLogBasedMetrics()
+        aggregator.aggregate()
 
-        val derivedUnarySignificance = mutableMapOf<XEventClass, Double>()
-        unarySignificance.keys.filterIsInstance<DerivedUnaryMetric>().forEach { metric ->
-            val weight = unarySignificance[metric] ?: return@forEach
-            metric.setLogBasedWeights(
-                logBasedUnarySignificanceWeight,
-                logBasedBinarySignificanceWeight,
-                logBasedBinaryCorrelationWeight
-            )
-            metric.calculate(aggregateUnarySignificance, aggregateBinarySignificance, aggregateBinaryCorrelation)
-            addMaps(derivedUnarySignificance, normalize(metric.values, weight))
-        }
-        addMaps(aggregateUnarySignificance, derivedUnarySignificance)
+        val derivedCalculator = DerivedMetricsCalculator(unarySignificance, binarySignificance, binaryCorrelation, aggregator)
+        derivedCalculator.calculate()
 
-        val derivedBinarySignificance = mutableMapOf<XEventClassPair, Double>()
-        binarySignificance.keys.filterIsInstance<DerivedBinaryMetric>().forEach { metric ->
-            val weight = binarySignificance[metric] ?: return@forEach
-            metric.setLogBasedWeights(
-                logBasedUnarySignificanceWeight,
-                logBasedBinarySignificanceWeight,
-                logBasedBinaryCorrelationWeight
-            )
-            metric.calculate(aggregateUnarySignificance, aggregateBinarySignificance, aggregateBinaryCorrelation)
-            addMaps(derivedBinarySignificance, normalize(metric.values, weight))
-        }
-        addMaps(aggregateBinarySignificance, derivedBinarySignificance)
-
-        val derivedBinaryCorrelation = mutableMapOf<XEventClassPair, Double>()
-        binaryCorrelation.keys.filterIsInstance<DerivedBinaryMetric>().forEach { metric ->
-            val weight = binaryCorrelation[metric] ?: return@forEach
-            metric.setLogBasedWeights(
-                logBasedUnarySignificanceWeight,
-                logBasedBinarySignificanceWeight,
-                logBasedBinaryCorrelationWeight
-            )
-            metric.calculate(aggregateUnarySignificance, aggregateBinarySignificance, aggregateBinaryCorrelation)
-            addMaps(derivedBinaryCorrelation, normalize(metric.values, weight))
-        }
-        addMaps(aggregateBinaryCorrelation, derivedBinaryCorrelation)
+        aggregateUnarySignificance = aggregator.aggregateUnarySignificance
+        aggregateBinarySignificance = aggregator.aggregateBinarySignificance
+        aggregateBinaryCorrelation = aggregator.aggregateBinaryCorrelation
     }
 
-    private fun aggregateLogBasedMetrics() {
-        unarySignificance.keys.filterIsInstance<LogBasedUnaryMetric>().forEach { metric ->
-            val weight = unarySignificance[metric] ?: return@forEach
-            logBasedUnarySignificanceWeight += weight
-            addMaps(aggregateUnarySignificance, normalize(metric.values, weight))
-        }
-
-        binarySignificance.keys.filterIsInstance<LogBasedBinaryMetric>().forEach { metric ->
-            val weight = binarySignificance[metric] ?: return@forEach
-            logBasedBinarySignificanceWeight += weight
-            val values = if (metric.normalize) {
-                metric.values.mapValues { (key, value) -> value / normalizationFactors.getOrDefault(key, 1.0) }
-            } else {
-                metric.values
-            }
-            addMaps(aggregateBinarySignificance, normalize(values, weight))
-        }
-
-        binaryCorrelation.keys.filterIsInstance<LogBasedBinaryMetric>().forEach { metric ->
-            val weight = binaryCorrelation[metric] ?: return@forEach
-            logBasedBinaryCorrelationWeight += weight
-            val values = if (metric.normalize) {
-                metric.values.mapValues { (key, value) -> value / normalizationFactors.getOrDefault(key, 1.0) }
-            } else {
-                metric.values
-            }
-            addMaps(aggregateBinaryCorrelation, normalize(values, weight))
-        }
+    fun reset() {
+        aggregator.reset()
     }
+}
 
-    private fun <K>normalize(values: Map<K, Double>, weight: Double): Map<K, Double> {
-        val max = values.values.max() ?: return values
-        return values.mapValues { weight * it.value / max }
-    }
+fun <K>normalize(values: Map<K, Double>, weight: Double): Map<K, Double> {
+    val max = values.values.max() ?: return values
+    return values.mapValues { weight * it.value / max }
+}
 
-    fun <K>addMaps(target: MutableMap<K, Double>, addition: Map<K, Double>) {
-        addition.forEach { (key, addValue) ->
-            target.compute(key) { _, value -> (value ?: 0.0) + addValue }
-        }
+fun <K>addMaps(target: MutableMap<K, Double>, addition: Map<K, Double>) {
+    addition.forEach { (key, addValue) ->
+        target.compute(key) { _, value -> (value ?: 0.0) + addValue }
     }
 }
