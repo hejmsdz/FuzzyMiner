@@ -1,9 +1,13 @@
 package com.mrozwadowski.fuzzyminer.mining.online
 
+import com.mrozwadowski.fuzzyminer.data.Parameters
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.NodeCluster
 import com.mrozwadowski.fuzzyminer.data.graph.PrimitiveNode
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
+import com.mrozwadowski.fuzzyminer.mining.GraphBuilder
+import com.mrozwadowski.fuzzyminer.mining.SimplificationPipeline
+import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsDump
 import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
@@ -18,21 +22,28 @@ class XEventClassesExtended(classifier: XEventClassifier): XEventClasses(classif
 
 class OnlineFuzzyMiner(
     private val classifier: XEventClassifier,
-    private val metrics: MetricsStore,
-    var graph: Graph? = null
+    private var metrics: MetricsStore
 ) {
-    fun learn(log: XLog) {
-        if (graph == null) {
-            graph = FuzzyMiner(log, classifier, metrics).mine()
-        }
+    var parameters = Parameters(0.2, 0.05, 0.5 ,0.2, 0.1)
 
+    var graph: Graph = Graph(listOf(), mapOf())
+
+    fun learn(log: XLog) {
         val eventClasses = getEventClasses(log)
+        metrics.calculateFromLog(log, eventClasses)
+        updateGraph()
     }
 
     fun unlearn(log: XLog) {
-        if (graph == null) {
-            return
-        }
+        val eventClasses = getEventClasses(log)
+        metrics.reset()
+        metrics.calculateFromLog(log, eventClasses, -1.0)
+        updateGraph()
+    }
+
+    private fun updateGraph() {
+        val originalGraph = GraphBuilder().buildFromMetrics(metrics)
+        graph = SimplificationPipeline(parameters).simplify(originalGraph)
     }
 
     fun getEventClasses(log: XLog): XEventClasses {
@@ -42,13 +53,7 @@ class OnlineFuzzyMiner(
         return eventClasses
     }
 
-    private fun knownEventClasses(): List<XEventClass> {
-        return graph?.nodes?.flatMap { node ->
-            when (node) {
-                is PrimitiveNode -> listOf(node.eventClass)
-                is NodeCluster -> node.nodes.map { it.eventClass }
-                else -> listOf()
-            }
-        } ?: listOf()
+    private fun knownEventClasses(): Collection<XEventClass> {
+        return metrics.aggregateUnarySignificance.keys
     }
 }

@@ -1,10 +1,11 @@
 package com.mrozwadowski.fuzzyminer.experiments
 
 import com.mrozwadowski.fuzzyminer.input.getLogReader
+import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import com.mrozwadowski.fuzzyminer.mining.metrics.minimalMetrics
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
-import org.deckfour.xes.classification.XEventClasses
+import com.mrozwadowski.fuzzyminer.output.JSON
 import org.deckfour.xes.classification.XEventNameClassifier
 import java.io.File
 
@@ -21,13 +22,13 @@ fun main() {
         onlineMiner.learn(window.incoming(step))
         onlineMiner.unlearn(window.outgoing(step))
     }
-
-    printMetrics(metrics)
+    println(JSON(onlineMiner.graph))
 
     val lastFragment = window.fragment(window.steps().last)
     val offlineMetrics = minimalMetrics()
-    offlineMetrics.calculateFromLog(lastFragment, XEventClasses.deriveEventClasses(classifier, lastFragment))
-    printMetrics(offlineMetrics)
+    val offlineMiner = FuzzyMiner(lastFragment, classifier, offlineMetrics)
+    val offlineGraph = offlineMiner.mine()
+    println(JSON(offlineGraph))
 }
 
 fun printMetrics(metrics: MetricsStore) {
