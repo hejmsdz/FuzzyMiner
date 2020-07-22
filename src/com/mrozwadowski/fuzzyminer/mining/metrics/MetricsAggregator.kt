@@ -46,10 +46,18 @@ class MetricsAggregator(
     private fun aggregateBinaryMetric(metric: LogBasedBinaryMetric, weight: Double, target: MutableMap<XEventClassPair, Double>) {
         logBasedBinarySignificanceWeight += weight
         val values = if (metric.normalize) {
-            metric.values.mapValues { (key, value) -> value / normalizationFactors.getOrDefault(key, 1.0) }
+            metric.values.mapValues { (key, value) ->
+                val normalizationFactor = normalizationFactors.getOrDefault(key, 1.0)
+                if (normalizationFactor > 0.0) {
+                    value / normalizationFactor
+                } else {
+                    0.0
+                }
+            }
         } else {
             metric.values
         }
-        addMaps(target, normalize(values, weight))
+        val normalized = normalize(values, weight)
+        addMaps(target, normalized)
     }
 }
