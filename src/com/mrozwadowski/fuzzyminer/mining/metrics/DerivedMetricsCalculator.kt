@@ -23,7 +23,17 @@ class DerivedMetricsCalculator(
         val derived = mutableMapOf<XEventClass, Double>()
         metrics.keys.filterIsInstance<DerivedUnaryMetric>().forEach { metric ->
             val weight = metrics[metric] ?: return@forEach
-            deriveMetric(metric, weight, derived)
+            metric.setLogBasedWeights(
+                aggregator.logBasedUnarySignificanceWeight,
+                aggregator.logBasedBinarySignificanceWeight,
+                aggregator.logBasedBinaryCorrelationWeight
+            )
+            metric.calculate(
+                aggregator.aggregateUnarySignificance,
+                aggregator.aggregateBinarySignificance,
+                aggregator.aggregateBinaryCorrelation
+            )
+            addMaps(derived, normalize(metric.values, weight))
         }
         return derived
     }
@@ -32,22 +42,18 @@ class DerivedMetricsCalculator(
         val derived = mutableMapOf<XEventClassPair, Double>()
         metrics.keys.filterIsInstance<DerivedBinaryMetric>().forEach { metric ->
             val weight = metrics[metric] ?: return@forEach
-            deriveMetric(metric, weight, derived)
+            metric.setLogBasedWeights(
+                aggregator.logBasedUnarySignificanceWeight,
+                aggregator.logBasedBinarySignificanceWeight,
+                aggregator.logBasedBinaryCorrelationWeight
+            )
+            metric.calculate(
+                aggregator.aggregateUnarySignificance,
+                aggregator.aggregateBinarySignificance,
+                aggregator.aggregateBinaryCorrelation
+            )
+            addMaps(derived, normalize(metric.values, weight))
         }
         return derived
-    }
-
-    private fun <K>deriveMetric(metric: DerivedMetric<K>, weight: Double, target: MutableMap<K, Double>) {
-        metric.setLogBasedWeights(
-            aggregator.logBasedUnarySignificanceWeight,
-            aggregator.logBasedBinarySignificanceWeight,
-            aggregator.logBasedBinaryCorrelationWeight
-        )
-        metric.calculate(
-            aggregator.aggregateUnarySignificance,
-            aggregator.aggregateBinarySignificance,
-            aggregator.aggregateBinaryCorrelation
-        )
-        addMaps(target, normalize(metric.values, weight))
     }
 }
