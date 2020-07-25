@@ -48,7 +48,7 @@ class MetricsAggregator(
         val values = if (metric.normalize) {
             metric.values.mapValues { (key, value) ->
                 val normalizationFactor = normalizationFactors.getOrDefault(key, 1.0)
-                if (normalizationFactor > 0.0) {
+                if (normalizationFactor > 1e-8) {
                     value / normalizationFactor
                 } else {
                     0.0
