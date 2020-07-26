@@ -27,8 +27,10 @@ class GraphBuilder {
             val targetNode = nodes.getValue(eventClasses.second)
             val edgesForNode = edges.getOrPut(sourceNode, { mutableListOf() })
             val correlation = metrics.aggregateBinaryCorrelation.getOrDefault(eventClasses, 0.0)
-            val edge = Edge(sourceNode, targetNode, significance, correlation)
-            edgesForNode.add(edge)
+            if (significance > 0.0001 && correlation > 0.0001) {
+                val edge = Edge(sourceNode, targetNode, significance, correlation)
+                edgesForNode.add(edge)
+            }
         }
         return edges
     }
