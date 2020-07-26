@@ -111,28 +111,60 @@ class MetricsStore(
     }
 
     fun dumpMetrics(): MetricsDump {
-        val unarySignificanceDump = unarySignificance.keys.flatMap { metric ->
-            val metricName = metric.javaClass.simpleName
-            metric.values.map { (eventClass, value) ->
-                UnaryMetricEntry(metricName, eventClass.id) to value
-            }
-        }.toMap()
+        val unarySignificanceObjects = unarySignificance.keys.map { it.javaClass.simpleName to it }.toMap()
+        val binarySignificanceObjects = binarySignificance.keys.map { it.javaClass.simpleName to it }.toMap()
+        val binaryCorrelationObjects = binaryCorrelation.keys.map { it.javaClass.simpleName to it }.toMap()
 
-        val binarySignificanceDump = binarySignificance.keys.flatMap { metric ->
-            val metricName = metric.javaClass.simpleName
-            metric.values.map { (eventClasses, value) ->
-                BinaryMetricEntry(metricName, eventClasses.first.id, eventClasses.second.id) to value
-            }
-        }.toMap()
+        val unarySignificanceNames = unarySignificanceObjects.keys.toList()
+        val binarySignificanceNames = binarySignificanceObjects.keys.toList()
+        val binaryCorrelationNames = binaryCorrelationObjects.keys.toList()
 
-        val binaryCorrelationDump = binaryCorrelation.keys.flatMap { metric ->
-            val metricName = metric.javaClass.simpleName
-            metric.values.map { (eventClasses, value) ->
-                BinaryMetricEntry(metricName, eventClasses.first.id, eventClasses.second.id) to value
-            }
-        }.toMap()
+        val eventClasses = aggregateUnarySignificance.keys.map { it.id to it }.toMap()
+        val eventClassNames = eventClasses.keys.toList()
 
-        return MetricsDump(unarySignificanceDump, binarySignificanceDump, binaryCorrelationDump)
+        val unarySignificanceMatrix = Array(unarySignificanceNames.size) { Array(eventClasses.size) { 0.0 } }
+        val binarySignificanceMatrix = Array(binarySignificanceNames.size) { Array(eventClasses.size) { Array(eventClasses.size) { 0.0 } } }
+        val binaryCorrelationMatrix = Array(binaryCorrelationNames.size) { Array(eventClasses.size) { Array(eventClasses.size) { 0.0 } } }
+
+        unarySignificanceNames.forEachIndexed { i, metricName ->
+            val metric = unarySignificanceObjects[metricName]
+            eventClassNames.forEachIndexed { j, eventClassName ->
+                val eventClass = eventClasses[eventClassName] ?: ""
+                unarySignificanceMatrix[i][j] = metric?.values?.get(eventClass) ?: 0.0
+            }
+        }
+
+        binarySignificanceNames.forEachIndexed { i, metricName ->
+            val metric = binarySignificanceObjects[metricName]
+            eventClassNames.forEachIndexed { j, eventClassName1 ->
+                val eventClass1 = eventClasses[eventClassName1] ?: ""
+                eventClassNames.forEachIndexed { k, eventClassName2 ->
+                    val eventClass2 = eventClasses[eventClassName2] ?: ""
+                    binarySignificanceMatrix[i][j][k] = metric?.values?.get(eventClass1 to eventClass2) ?: 0.0
+                }
+            }
+        }
+
+        binaryCorrelationNames.forEachIndexed { i, metricName ->
+            val metric = binaryCorrelationObjects[metricName]
+            eventClassNames.forEachIndexed { j, eventClassName1 ->
+                val eventClass1 = eventClasses[eventClassName1] ?: ""
+                eventClassNames.forEachIndexed { k, eventClassName2 ->
+                    val eventClass2 = eventClasses[eventClassName2] ?: ""
+                    binaryCorrelationMatrix[i][j][k] = metric?.values?.get(eventClass1 to eventClass2) ?: 0.0
+                }
+            }
+        }
+
+        return MetricsDump(
+            unarySignificanceNames,
+            binarySignificanceNames,
+            binaryCorrelationNames,
+            eventClassNames,
+            unarySignificanceMatrix,
+            binarySignificanceMatrix,
+            binaryCorrelationMatrix
+        )
     }
 
     private fun processEvent(event: XEvent, eventClass: XEventClass, factor: Double) {

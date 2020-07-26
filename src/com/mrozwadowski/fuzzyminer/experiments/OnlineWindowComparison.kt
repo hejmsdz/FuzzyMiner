@@ -33,6 +33,8 @@ fun main() {
         compareGraphs(onlineGraph, offlineGraph, verbose = true)
         println()
     }
+
+    File("sampleData/journal_review.json").writeText(onlineMetrics.dumpMetrics().toString())
 }
 
 fun metricsFactory() = defaultMetrics()
@@ -118,27 +120,4 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
     } else {
         println("Perfect match!")
     }
-}
-
-fun printMetrics(metrics: MetricsStore) {
-    val dump = metrics.dumpMetrics()
-    dump.unarySignificance.keys.sortedWith(compareBy({ it.metricName }, { it.eventClassName })).forEach {
-        if (dump.unarySignificance[it] != 0.0) {
-            val mVal = "%.4f".format(dump.unarySignificance[it])
-            println("S_${it.metricName}(${it.eventClassName}) = $mVal")
-        }
-    }
-    dump.binarySignificance.keys.sortedWith(compareBy({ it.metricName }, { it.eventClass1Name }, { it.eventClass2Name })).forEach {
-        if (dump.binarySignificance[it] != 0.0) {
-            val mVal = "%.4f".format(dump.binarySignificance[it])
-            println("S_${it.metricName}(${it.eventClass1Name}, ${it.eventClass2Name}) = $mVal")
-        }
-    }
-    dump.binaryCorrelation.keys.sortedWith(compareBy({ it.metricName }, { it.eventClass1Name }, { it.eventClass2Name })).forEach {
-        if (dump.binaryCorrelation[it] != 0.0) {
-            val mVal = "%.4f".format(dump.binaryCorrelation[it])
-            println("C_${it.metricName}(${it.eventClass1Name}, ${it.eventClass2Name}) = $mVal")
-        }
-    }
-    println()
 }
