@@ -167,6 +167,46 @@ class MetricsStore(
         )
     }
 
+    fun loadMetrics(dump: MetricsDump) {
+        reset()
+
+        val eventClasses = dump.eventClasses.mapIndexed { id, name -> XEventClass(name, id) }
+        val unarySignificanceObjects = dump.unarySignificanceNames.map { name -> unarySignificance.keys.find { it.javaClass.simpleName == name } }
+        val binarySignificanceObjects = dump.binarySignificanceNames.map { name -> binarySignificance.keys.find { it.javaClass.simpleName == name } }
+        val binaryCorrelationObjects = dump.binaryCorrelationNames.map { name -> binaryCorrelation.keys.find { it.javaClass.simpleName == name } }
+
+        dump.unarySignificanceMatrix.forEachIndexed { i, row ->
+            val metric = unarySignificanceObjects[i] ?: return@forEachIndexed
+            metric.reset()
+
+            row.forEachIndexed { j, value ->
+                metric.values[eventClasses[j]] = value
+            }
+        }
+
+        dump.binarySignificanceMatrix.forEachIndexed { i, row ->
+            val metric = binarySignificanceObjects[i] ?: return@forEachIndexed
+            metric.reset()
+
+            row.forEachIndexed { j, column ->
+                column.forEachIndexed { k, value ->
+                    metric.values[eventClasses[j] to eventClasses[k]] = value
+                }
+            }
+        }
+
+        dump.binaryCorrelationMatrix.forEachIndexed { i, row ->
+            val metric = binaryCorrelationObjects[i] ?: return@forEachIndexed
+            metric.reset()
+
+            row.forEachIndexed { j, column ->
+                column.forEachIndexed { k, value ->
+                    metric.values[eventClasses[j] to eventClasses[k]] = value
+                }
+            }
+        }
+    }
+
     private fun processEvent(event: XEvent, eventClass: XEventClass, factor: Double) {
         logBasedUnaryMetrics.forEach { it.processEvent(event, eventClass, factor) }
     }
