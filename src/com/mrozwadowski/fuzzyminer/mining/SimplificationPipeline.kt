@@ -23,12 +23,11 @@ class SimplificationPipeline(private val parameters: Parameters) {
         return filter.apply(parameters.utilityRatio, parameters.edgeCutoff)
     }
 
-    private fun filterNodes(graph: Graph): Graph {
-        val filter1 = VictimClusterer(graph)
-        val graph1 = filter1.apply(parameters.nodeCutoff)
-        val filter2 = ClusterMerger(graph1)
-        val graph2 = filter2.apply()
-        val filter3 = ClusterFilter(graph2)
-        return filter3.apply()
+    private fun filterNodes(originalGraph: Graph): Graph {
+        var graph = originalGraph
+        graph = VictimClusterer(graph).apply(parameters.nodeCutoff)
+        graph = ClusterMerger(graph).apply()
+        graph = ClusterFilter(graph).apply()
+        return graph
     }
 }
