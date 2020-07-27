@@ -11,15 +11,19 @@ class SlidingWindow(
     private val factory = XFactoryNaiveImpl()
 
     fun initial(): XLog {
-        return logFragment(0, windowSize)
+        return fragment(0)
+    }
+
+    fun fragment(step: Int): XLog {
+        return logSlice(step * stride, windowSize)
     }
 
     fun incoming(step: Int): XLog {
-        return logFragment(windowSize + (step - 1) * stride, stride)
+        return logSlice(windowSize + (step - 1) * stride, stride)
     }
 
     fun outgoing(step: Int): XLog {
-        return logFragment((step - 1) * stride, stride)
+        return logSlice((step - 1) * stride, stride)
     }
 
     fun steps(): IntRange {
@@ -27,33 +31,10 @@ class SlidingWindow(
         return 1..lastStep
     }
 
-    fun logFragment(position: Int, length: Int): XLog {
+    private fun logSlice(position: Int, length: Int): XLog {
         val traces = log.subList(position, position + length)
         val fragment = factory.createLog(log.attributes)
         fragment.addAll(traces)
         return fragment
     }
 }
-
-/*
-fun run(miner: OnlineMiner, log: XLog): Graph {
-    val fragments = splitLog(log, 4)
-
-    var model: Graph? = null
-    fragments.forEach { fragment ->
-        model = miner.mine(model, fragment)
-    }
-    return model!!
-}
-
-private fun splitLog(log: XLog, numFragments: Int): List<XLog> {
-    val fragmentSize = ceil(log.size / numFragments.toDouble()).toInt()
-    val factory = XFactoryNaiveImpl()
-
-    return log.chunked(fragmentSize) { traces ->
-        val fragment = factory.createLog(log.attributes)
-        fragment.addAll(traces)
-        fragment
-    }
-}
- */

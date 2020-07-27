@@ -19,29 +19,8 @@ class FuzzyMiner(
     var parameters = Parameters(0.2, 0.05, 0.5 ,0.2, 0.1)
 
     fun mine(): Graph {
-        var graph = NaiveMiner(log, eventClasses, metrics).mine()
-        graph = filterConcurrency(graph)
-        graph = filterEdges(graph)
-        graph = filterNodes(graph)
-        return graph
-    }
-
-    private fun filterConcurrency(graph: Graph): Graph {
-        val filter = ConcurrencyFilter(graph)
-        return filter.apply(parameters.preserveThreshold, parameters.ratioThreshold)
-    }
-
-    private fun filterEdges(graph: Graph): Graph {
-        val filter = EdgeFilter(graph)
-        return filter.apply(parameters.utilityRatio, parameters.edgeCutoff)
-    }
-
-    private fun filterNodes(graph: Graph): Graph {
-        val filter1 = VictimClusterer(graph)
-        val graph1 = filter1.apply(parameters.nodeCutoff)
-        val filter2 = ClusterMerger(graph1)
-        val graph2 = filter2.apply()
-        val filter3 = ClusterFilter(graph2)
-        return filter3.apply()
+        metrics.calculateFromLog(log, eventClasses)
+        val graph = GraphBuilder().buildFromMetrics(metrics)
+        return SimplificationPipeline(parameters).simplify(graph)
     }
 }
