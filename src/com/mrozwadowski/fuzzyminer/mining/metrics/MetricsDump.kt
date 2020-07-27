@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder
 
 
 data class MetricsDump(
+    val tracesProcessed: Long,
     val unarySignificanceNames: List<String>,
     val binarySignificanceNames: List<String>,
     val binaryCorrelationNames: List<String>,
@@ -23,6 +24,7 @@ data class MetricsDump(
 
         other as MetricsDump
 
+        if (tracesProcessed != other.tracesProcessed) return false
         if (unarySignificanceNames != other.unarySignificanceNames) return false
         if (binarySignificanceNames != other.binarySignificanceNames) return false
         if (binaryCorrelationNames != other.binaryCorrelationNames) return false
@@ -35,7 +37,8 @@ data class MetricsDump(
     }
 
     override fun hashCode(): Int {
-        var result = unarySignificanceNames.hashCode()
+        var result = tracesProcessed.hashCode()
+        result = 31 * result + unarySignificanceNames.hashCode()
         result = 31 * result + binarySignificanceNames.hashCode()
         result = 31 * result + binaryCorrelationNames.hashCode()
         result = 31 * result + eventClasses.hashCode()

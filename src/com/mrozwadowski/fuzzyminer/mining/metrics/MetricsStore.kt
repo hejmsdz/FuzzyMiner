@@ -89,6 +89,8 @@ class MetricsStore(
     var aggregateBinarySignificance = mutableMapOf<XEventClassPair, Double>()
     var aggregateBinaryCorrelation = mutableMapOf<XEventClassPair, Double>()
 
+    var tracesProcessed: Long = 0
+
     private val aggregator = MetricsAggregator(unarySignificance, binarySignificance, binaryCorrelation, normalizationFactors)
 
     fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Double = 1.0) {
@@ -107,6 +109,7 @@ class MetricsStore(
                 }
             }
         }
+        tracesProcessed += log.size
         calculateDerivedMetrics()
     }
 
@@ -130,7 +133,7 @@ class MetricsStore(
             val metric = unarySignificanceObjects[metricName]
             eventClassNames.forEachIndexed { j, eventClassName ->
                 val eventClass = eventClasses[eventClassName] ?: ""
-                unarySignificanceMatrix[i][j] = metric?.values?.get(eventClass) ?: 0.0
+                unarySignificanceMatrix[i][j] = (metric?.values?.get(eventClass) ?: 0.0) / tracesProcessed
             }
         }
 
@@ -140,7 +143,7 @@ class MetricsStore(
                 val eventClass1 = eventClasses[eventClassName1] ?: ""
                 eventClassNames.forEachIndexed { k, eventClassName2 ->
                     val eventClass2 = eventClasses[eventClassName2] ?: ""
-                    binarySignificanceMatrix[i][j][k] = metric?.values?.get(eventClass1 to eventClass2) ?: 0.0
+                    binarySignificanceMatrix[i][j][k] = (metric?.values?.get(eventClass1 to eventClass2) ?: 0.0) / tracesProcessed
                 }
             }
         }
@@ -151,12 +154,13 @@ class MetricsStore(
                 val eventClass1 = eventClasses[eventClassName1] ?: ""
                 eventClassNames.forEachIndexed { k, eventClassName2 ->
                     val eventClass2 = eventClasses[eventClassName2] ?: ""
-                    binaryCorrelationMatrix[i][j][k] = metric?.values?.get(eventClass1 to eventClass2) ?: 0.0
+                    binaryCorrelationMatrix[i][j][k] = (metric?.values?.get(eventClass1 to eventClass2) ?: 0.0) / tracesProcessed
                 }
             }
         }
 
         return MetricsDump(
+            tracesProcessed,
             unarySignificanceNames,
             binarySignificanceNames,
             binaryCorrelationNames,
@@ -170,6 +174,7 @@ class MetricsStore(
     fun loadMetrics(dump: MetricsDump) {
         reset()
 
+        tracesProcessed = dump.tracesProcessed
         val eventClasses = dump.eventClasses.mapIndexed { id, name -> XEventClass(name, id) }
         val unarySignificanceObjects = dump.unarySignificanceNames.map { name -> unarySignificance.keys.find { it.javaClass.simpleName == name } }
         val binarySignificanceObjects = dump.binarySignificanceNames.map { name -> binarySignificance.keys.find { it.javaClass.simpleName == name } }
@@ -180,7 +185,9 @@ class MetricsStore(
             metric.reset()
 
             row.forEachIndexed { j, value ->
-                metric.values[eventClasses[j]] = value
+                if (value > 0) {
+                    metric.values[eventClasses[j]] = value * dump.tracesProcessed
+                }
             }
         }
 
@@ -190,7 +197,9 @@ class MetricsStore(
 
             row.forEachIndexed { j, column ->
                 column.forEachIndexed { k, value ->
-                    metric.values[eventClasses[j] to eventClasses[k]] = value
+                    if (value > 0) {
+                        metric.values[eventClasses[j] to eventClasses[k]] = value * dump.tracesProcessed
+                    }
                 }
             }
         }
@@ -201,10 +210,14 @@ class MetricsStore(
 
             row.forEachIndexed { j, column ->
                 column.forEachIndexed { k, value ->
-                    metric.values[eventClasses[j] to eventClasses[k]] = value
+                    if (value > 0) {
+                        metric.values[eventClasses[j] to eventClasses[k]] = value * dump.tracesProcessed
+                    }
                 }
             }
         }
+
+        calculateDerivedMetrics()
     }
 
     private fun processEvent(event: XEvent, eventClass: XEventClass, factor: Double) {
