@@ -1,7 +1,6 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
-import com.google.gson.GsonBuilder
-
+import com.google.gson.Gson
 
 data class MetricsDump(
     val tracesProcessed: Long,
@@ -13,9 +12,14 @@ data class MetricsDump(
     val binarySignificanceMatrix: Array<Array<Array<Double>>>,
     val binaryCorrelationMatrix: Array<Array<Array<Double>>>
 ) {
+    companion object {
+        fun fromString(json: String): MetricsDump? {
+            return Gson().fromJson(json, MetricsDump::class.java)
+        }
+    }
+
     override fun toString(): String {
-        val gson = GsonBuilder().create()
-        return gson.toJson(this)
+        return Gson().toJson(this)
     }
 
     override fun equals(other: Any?): Boolean {
