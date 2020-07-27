@@ -38,5 +38,7 @@
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.6" level="project" />
     <orderEntry type="library" name="com.google.guava:guava:18.0" level="project" />
     <orderEntry type="library" name="javax.xml.bind:jaxb-api:2.3.1" level="project" />
+    <orderEntry type="library" name="org.openjdk.jmh:jmh-core:1.23" level="project" />
+    <orderEntry type="library" name="org.openjdk.jmh:jmh-generator-annprocess:1.23" level="project" />
   </component>
 </module>
