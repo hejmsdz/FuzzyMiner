@@ -11,8 +11,19 @@ import java.io.File
 import kotlin.math.absoluteValue
 
 fun main() {
-    val log = getLogReader(File("sampleData/journal_review.xes")).readLog()
-    val window = SlidingWindow(log, windowSize = 20, stride = 5)
+    val logPath = "sampleData/journal_review.xes"
+
+    (10..50 step 10).forEach { windowSize ->
+        listOf(windowSize / 5, windowSize / 2, 3 * windowSize / 5).forEach { stride ->
+            println("$windowSize : $stride")
+            test(logPath, windowSize, 5)
+        }
+    }
+}
+
+fun test(logPath: String, windowSize: Int, stride: Int) {
+    val log = getLogReader(File(logPath)).readLog()
+    val window = SlidingWindow(log, windowSize, stride)
 
     val classifier = XEventNameClassifier()
     val onlineMetrics = metricsFactory()
@@ -29,12 +40,9 @@ fun main() {
         val offlineMiner = FuzzyMiner(fragment, classifier, offlineMetrics)
         val offlineGraph = offlineMiner.mine()
 
-        println("=== STEP $step ===")
-        compareGraphs(onlineGraph, offlineGraph, verbose = true)
-        println()
+        compareGraphs(onlineGraph, offlineGraph)
+        compareMetrics(onlineMetrics, offlineMetrics)
     }
-
-    File("sampleData/journal_review.json").writeText(onlineMetrics.dumpMetrics().toString())
 }
 
 fun metricsFactory() = defaultMetrics()
@@ -117,7 +125,7 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
 
     if (difference > 0.0) {
         println("Total difference: $difference")
-    } else {
+    } else if (verbose) {
         println("Perfect match!")
     }
 }
