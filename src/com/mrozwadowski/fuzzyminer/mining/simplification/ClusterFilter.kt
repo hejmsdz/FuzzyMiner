@@ -34,9 +34,11 @@ class ClusterFilter(private val graph: Graph) {
         edges.removeAll(outgoing)
         incoming.forEach { inEdge ->
             outgoing.forEach { outEdge ->
-                val significance = (inEdge.significance + outEdge.significance) / 2.0
-                val correlation = (inEdge.correlation + outEdge.correlation) / 2.0
-                edges.add(Edge(inEdge.source, outEdge.target, significance, correlation))
+                if (edges.none { it.source == inEdge.source && it.target == outEdge.target }) {
+                    val significance = (inEdge.significance + outEdge.significance) / 2.0
+                    val correlation = (inEdge.correlation + outEdge.correlation) / 2.0
+                    edges.add(Edge(inEdge.source, outEdge.target, significance, correlation))
+                }
             }
         }
     }

@@ -13,17 +13,17 @@ class VictimClusterer(private val graph: Graph) {
                 (source !in victims) || (target !in victims) || (reverseClusterMap[source] != reverseClusterMap[target])
             }.map { (source, target) ->
                 createEdge(graph, (reverseClusterMap[source] ?: source), (reverseClusterMap[target] ?: target))
-            }
+            }.distinctBy { it.source to it.target }
         val edgeMap = edges.groupBy { it.source }
         return Graph(primitives + clusters, edgeMap)
     }
 
-    private fun findVictims(cutoff: Double): Collection<Node> {
-        return graph.nodes.filter { it.significance < cutoff }
+    private fun findVictims(cutoff: Double): Collection<PrimitiveNode> {
+        return graph.nodes.filterIsInstance<PrimitiveNode>().filter { it.significance < cutoff }
     }
 
-    private fun assignInitialClusters(victims: Collection<Node>): Map<Node, Int> {
-        val assignment = mutableMapOf<Node, Int>()
+    private fun assignInitialClusters(victims: Collection<PrimitiveNode>): Map<PrimitiveNode, Int> {
+        val assignment = mutableMapOf<PrimitiveNode, Int>()
         var nextCluster = 1
 
         victims.forEach { victim ->
@@ -35,7 +35,7 @@ class VictimClusterer(private val graph: Graph) {
         return assignment
     }
 
-    private fun clustersFromAssignment(assignment: Map<Node, Int>): Collection<NodeCluster> {
+    private fun clustersFromAssignment(assignment: Map<PrimitiveNode, Int>): Collection<NodeCluster> {
         return assignment.entries
             .groupBy { it.value }
             .values
@@ -44,13 +44,14 @@ class VictimClusterer(private val graph: Graph) {
 }
 
 fun createEdge(graph: Graph, source: Node, target: Node): Edge {
+    val edge = graph.edgeBetween(source, target)
+    if (edge != null) {
+        return edge
+    }
+
     var significance = 0.0
     var correlation = 0.0
 
-    if (source is PrimitiveNode && target is PrimitiveNode) {
-        significance = graph.edgeBetween(source, target)?.significance ?: 0.0
-        correlation = graph.edgeBetween(source, target)?.correlation ?: 0.0
-    }
     if (source is NodeCluster && target is PrimitiveNode) {
         significance = source.nodes.map { graph.edgeBetween(it, target)?.significance ?: 0.0 }.average()
         correlation = source.nodes.map { graph.edgeBetween(it, target)?.correlation ?: 0.0 }.average()
