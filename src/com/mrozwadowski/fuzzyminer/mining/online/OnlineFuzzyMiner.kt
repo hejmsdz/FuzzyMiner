@@ -22,24 +22,32 @@ class OnlineFuzzyMiner(
 ) {
     var parameters = Parameters(0.2, 0.05, 0.5 ,0.2, 0.1)
 
-    var graph: Graph = Graph(listOf(), mapOf())
+    val graph: Graph
+        get() {
+            if (isGraphStale) updateGraph()
+            return savedGraph
+        }
+
+    private var savedGraph: Graph = Graph(listOf(), mapOf())
+    private var isGraphStale = false
 
     fun learn(log: XLog) {
         val eventClasses = getEventClasses(log)
         metrics.calculateFromLog(log, eventClasses)
-        updateGraph()
+        isGraphStale = true
     }
 
     fun unlearn(log: XLog) {
         val eventClasses = getEventClasses(log)
         metrics.reset()
         metrics.calculateFromLog(log, eventClasses, -1.0)
-        updateGraph()
+        isGraphStale = true
     }
 
     private fun updateGraph() {
         val originalGraph = GraphBuilder().buildFromMetrics(metrics)
-        graph = SimplificationPipeline(parameters).simplify(originalGraph)
+        savedGraph = SimplificationPipeline(parameters).simplify(originalGraph)
+        isGraphStale = false
     }
 
     fun getEventClasses(log: XLog): XEventClasses {
