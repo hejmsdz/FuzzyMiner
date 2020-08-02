@@ -12,7 +12,7 @@ import java.io.File
 import kotlin.math.absoluteValue
 
 fun main() {
-    val logFiles = arrayOf(File("sampleData/journal_review.xes"))
+    val logFiles = File("experimentData").listFiles()
     logFiles?.forEach { logFile ->
         println(logFile)
 
