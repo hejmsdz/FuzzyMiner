@@ -93,13 +93,13 @@ class MetricsStore(
 
     private val aggregator = MetricsAggregator(unarySignificance, binarySignificance, binaryCorrelation, normalizationFactors)
 
-    fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Double = 1.0) {
+    fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Int = 1) {
         val maxDistance = if (attenuation == null) 1 else attenuation.maxDistance
 
         log.forEach { trace ->
             trace.withIndex().forEach { (i, event) ->
                 val eventClass = eventClasses.getClassOf(event)
-                processEvent(event, eventClass, factor)
+                processEvent(event, eventClass, factor.toDouble())
 
                 val lookBack = minOf(maxDistance ?: i, i)
                 for (distance in 1..lookBack) {
@@ -109,7 +109,7 @@ class MetricsStore(
                 }
             }
         }
-        tracesProcessed += log.size
+        tracesProcessed += log.size * factor
         calculateDerivedMetrics()
     }
 

@@ -40,7 +40,7 @@ class OnlineFuzzyMiner(
     fun unlearn(log: XLog) {
         val eventClasses = getEventClasses(log)
         metrics.reset()
-        metrics.calculateFromLog(log, eventClasses, -1.0)
+        metrics.calculateFromLog(log, eventClasses, -1)
         isGraphStale = true
     }
 
