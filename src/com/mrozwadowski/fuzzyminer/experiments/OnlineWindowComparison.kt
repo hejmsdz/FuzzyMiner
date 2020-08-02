@@ -19,7 +19,7 @@ fun main() {
         (10..50 step 10).forEach { windowSize ->
             listOf(windowSize / 5, windowSize / 2, 3 * windowSize / 5).forEach { stride ->
                 println("$windowSize : $stride")
-                OnlineWindowComparison(logFile, windowSize, 5).testGraphIdentity()
+                OnlineWindowComparison(logFile, windowSize, stride).testGraphIdentity()
             }
         }
     }
