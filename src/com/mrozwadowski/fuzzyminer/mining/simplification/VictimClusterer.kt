@@ -26,8 +26,10 @@ class VictimClusterer(private val graph: Graph) {
         val assignment = mutableMapOf<PrimitiveNode, Int>()
         var nextCluster = 1
 
-        victims.forEach { victim ->
-            val mostCorrelatedNeighbor = graph.neighbors(victim).maxBy { graph.edgeBetween(victim, it)?.correlation ?: 0.0 }
+        victims.sortedBy { it.toString() }.forEach { victim ->
+            val mostCorrelatedNeighbor = graph.neighbors(victim)
+                .sortedBy { it.toString() }
+                .maxBy { graph.edgeBetween(victim, it)?.correlation ?: 0.0 }
             val cluster = assignment.getOrDefault(mostCorrelatedNeighbor, 0)
             assignment[victim] = if (cluster == 0) nextCluster++ else cluster
         }
@@ -53,25 +55,33 @@ fun createEdge(graph: Graph, source: Node, target: Node): Edge {
     var correlation = 0.0
 
     if (source is NodeCluster && target is PrimitiveNode) {
-        significance = source.nodes.map { graph.edgeBetween(it, target)?.significance ?: 0.0 }.average()
-        correlation = source.nodes.map { graph.edgeBetween(it, target)?.correlation ?: 0.0 }.average()
+        significance = average(source.nodes.map { graph.edgeBetween(it, target)?.significance })
+        correlation = average(source.nodes.map { graph.edgeBetween(it, target)?.correlation })
     }
     if (source is PrimitiveNode && target is NodeCluster) {
-        significance = target.nodes.map { graph.edgeBetween(source, it)?.significance ?: 0.0 }.average()
-        correlation = target.nodes.map { graph.edgeBetween(source, it)?.correlation ?: 0.0 }.average()
+        significance = average(target.nodes.map { graph.edgeBetween(source, it)?.significance })
+        correlation = average(target.nodes.map { graph.edgeBetween(source, it)?.correlation })
     }
     if (source is NodeCluster && target is NodeCluster) {
-        significance = source.nodes.flatMap { sourceNode ->
+        significance = average(source.nodes.flatMap { sourceNode ->
             target.nodes.map { targetNode ->
-                graph.edgeBetween(sourceNode, targetNode)?.significance ?: 0.0
+                graph.edgeBetween(sourceNode, targetNode)?.significance
             }
-        }.average()
-        correlation = source.nodes.flatMap { sourceNode ->
+        })
+        correlation = average(source.nodes.flatMap { sourceNode ->
             target.nodes.map { targetNode ->
-                graph.edgeBetween(sourceNode, targetNode)?.significance ?: 0.0
+                graph.edgeBetween(sourceNode, targetNode)?.significance
             }
-        }.average()
+        })
     }
 
     return Edge(source, target, significance, correlation)
+}
+
+fun average(values: Collection<Double?>): Double {
+    val valuesNotNull = values.filterNotNull()
+    if (valuesNotNull.isEmpty()) {
+        return 0.0
+    }
+    return valuesNotNull.average()
 }
