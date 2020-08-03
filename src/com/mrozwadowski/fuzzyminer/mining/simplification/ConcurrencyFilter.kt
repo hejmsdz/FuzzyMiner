@@ -12,7 +12,7 @@ class ConcurrencyFilter(private val graph: Graph) {
     private val logger = Logger.getLogger(javaClass.name)
 
     fun apply(preserveThreshold: Double, ratioThreshold: Double): Graph {
-        val conflicts = conflictedPairs()
+        val conflicts = findConflicts(graph)
         val edgesToRemove = conflicts.flatMap { (a, b) ->
             val ab = relativeSignificance(a, b)
             val ba = relativeSignificance(b, a)
@@ -66,10 +66,18 @@ class ConcurrencyFilter(private val graph: Graph) {
     }
 }
 
-fun findConflicts(graph: Graph): Set<Set<Node>> {
+fun findConflicts(graph: Graph): NodePairs {
     return graph.nodes.flatMap { source ->
         graph.edgesFrom(source)
             .filter { edge -> graph.edgeBetween(edge.target, source) != null && edge.target != source }
-            .map { edge -> setOf(source, edge.target) }
+            .map { edge -> sortedPair<Node>(source, edge.target) }
     }.toSet()
+}
+
+fun <T>sortedPair(a: T, b: T): Pair<T, T> {
+    return if (a.toString() <= b.toString()) {
+        a to b
+    } else {
+        b to a
+    }
 }
