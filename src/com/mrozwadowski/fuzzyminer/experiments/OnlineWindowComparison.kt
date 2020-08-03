@@ -7,6 +7,8 @@ import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import com.mrozwadowski.fuzzyminer.mining.metrics.defaultMetrics
 import com.mrozwadowski.fuzzyminer.mining.metrics.minimalMetrics
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
+import com.mrozwadowski.fuzzyminer.mining.simplification.ConcurrencyFilter
+import com.mrozwadowski.fuzzyminer.utils.significantlyEqual
 import org.deckfour.xes.classification.XEventNameClassifier
 import java.io.File
 import kotlin.math.absoluteValue
@@ -56,28 +58,27 @@ fun metricsFactory() = minimalMetrics()
 fun compareMetrics(metrics1: MetricsStore, metrics2: MetricsStore) {
     metrics1.aggregateUnarySignificance.forEach { (key, value) ->
         val offlineValue = metrics2.aggregateUnarySignificance[key] ?: 0.0
-        if ((offlineValue - value).absoluteValue > 0.0001) {
+        if (!significantlyEqual(offlineValue, value)) {
             println("US($key):\n    online[$value], offline[$offlineValue]")
         }
     }
 
     metrics1.aggregateBinarySignificance.forEach { (key, value) ->
         val offlineValue = metrics2.aggregateBinarySignificance[key] ?: 0.0
-        if ((offlineValue - value).absoluteValue > 0.0001) {
+        if (!significantlyEqual(offlineValue, value)) {
             println("BS($key):\n    online[$value], offline[$offlineValue]")
         }
     }
 
     metrics1.aggregateBinaryCorrelation.forEach { (key, value) ->
         val offlineValue = metrics2.aggregateBinaryCorrelation[key] ?: 0.0
-        if ((offlineValue - value).absoluteValue > 0.0001) {
+        if (!significantlyEqual(offlineValue, value)) {
             println("BC($key):\n    online[$value], offline[$offlineValue]")
         }
     }
 }
 
-fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = false) {
-//    var difference = 0.0
+fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = false): Boolean {
     var nodeDiff = 0
     var edgeDiff = 0
     var metricDiff = 0.0
@@ -103,7 +104,7 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
             println("$nodeName excessive in online graph")
             return@forEach
         }
-        if ((node1.significance - node2.significance).absoluteValue > 0.0001) {
+        if (!significantlyEqual(node1.significance, node2.significance)) {
             metricDiff += (node1.significance - node2.significance)
             if (verbose) println("$nodeName has significance ${node1.significance} in online graph and ${node2.significance} in offline graph")
         }
@@ -122,15 +123,17 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
             println("$edgeName [sig = ${edge1.significance}, cor = ${edge1.correlation}] excessive in online graph")
             return@forEach
         }
-        if ((edge1.significance - edge2.significance).absoluteValue > 0.0001) {
+        if (!significantlyEqual(edge1.significance, edge2.significance)) {
             metricDiff += (edge1.significance - edge2.significance)
             if (verbose) println("$edgeName has significance ${edge1.significance} in online graph and ${edge2.significance} in offline graph")
         }
-        if ((edge1.correlation - edge2.correlation).absoluteValue > 0.0001) {
+        if (!significantlyEqual(edge1.correlation, edge2.correlation)) {
             metricDiff += (edge1.correlation - edge2.correlation)
             if (verbose) println("$edgeName has correlation ${edge1.correlation} in online graph and ${edge2.correlation} in offline graph")
         }
     }
+
+    return nodeDiff == 0 && edgeDiff == 0 && metricDiff == 0.0
 
     /*
     if (nodeDiff > 0) {

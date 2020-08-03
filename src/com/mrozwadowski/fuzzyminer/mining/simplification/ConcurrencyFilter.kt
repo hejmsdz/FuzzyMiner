@@ -2,6 +2,7 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
+import com.mrozwadowski.fuzzyminer.utils.significantlyGreater
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.math.abs
@@ -19,10 +20,10 @@ class ConcurrencyFilter(private val graph: Graph) {
             val offset = abs(ab - ba)
 
             logger.log(Level.FINER, "Rel. significance: $ab, $ba")
-            if (ab >= preserveThreshold && ba >= preserveThreshold) {
+            if (significantlyGreater(ab, preserveThreshold) && significantlyGreater(ba, preserveThreshold)) {
                 handleLength2Loop(a, b)
             } else if (offset >= ratioThreshold) {
-                if (ab > ba) {
+                if (significantlyGreater(ab, ba)) {
                     handleException(b, a)
                 } else {
                     handleException(a, b)
@@ -48,14 +49,6 @@ class ConcurrencyFilter(private val graph: Graph) {
     private fun handleConcurrency(a: Node, b: Node): NodePairs {
         logger.log(Level.FINE, "'$a' and '$b' are concurrent")
         return listOf(a to b, b to a)
-    }
-
-    private fun conflictedPairs(): NodePairs {
-        return findConflicts(graph).map { set ->
-            assert(set.size == 2)
-            val (first, second) = set.toList()
-            first to second
-        }
     }
 
     private fun relativeSignificance(a: Node, b: Node): Double {

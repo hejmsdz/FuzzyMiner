@@ -1,6 +1,7 @@
 package com.mrozwadowski.fuzzyminer.mining.simplification
 
 import com.mrozwadowski.fuzzyminer.data.graph.*
+import com.mrozwadowski.fuzzyminer.utils.significantlyLess
 
 class VictimClusterer(private val graph: Graph) {
     fun apply(cutoff: Double): Graph {
@@ -19,7 +20,7 @@ class VictimClusterer(private val graph: Graph) {
     }
 
     private fun findVictims(cutoff: Double): Collection<PrimitiveNode> {
-        return graph.nodes.filterIsInstance<PrimitiveNode>().filter { it.significance < cutoff }
+        return graph.nodes.filterIsInstance<PrimitiveNode>().filter { significantlyLess(it.significance, cutoff) }
     }
 
     private fun assignInitialClusters(victims: Collection<PrimitiveNode>): Map<PrimitiveNode, Int> {

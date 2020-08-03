@@ -3,6 +3,7 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.data.graph.Node
+import com.mrozwadowski.fuzzyminer.utils.significantlyLess
 
 class EdgeFilter(private val graph: Graph) {
     fun apply(utilityRatio: Double, cutoff: Double): Graph {
@@ -11,7 +12,7 @@ class EdgeFilter(private val graph: Graph) {
             .filterNot { it.isEmpty() }
             .flatMap { edges ->
                 relativeUtilities(edges, utilityRatio)
-                    .filterValues { it < cutoff }
+                    .filterValues { significantlyLess(it, cutoff) }
                     .keys
                     .map { it.source to it.target }
         }
