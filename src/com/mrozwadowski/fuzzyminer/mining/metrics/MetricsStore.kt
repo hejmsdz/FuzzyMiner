@@ -1,6 +1,7 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import com.mrozwadowski.fuzzyminer.mining.metrics.attenuation.Attenuation
+import com.mrozwadowski.fuzzyminer.utils.significantlyEqual
 import com.mrozwadowski.fuzzyminer.utils.significantlyGreater
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
@@ -255,7 +256,12 @@ class MetricsStore(
 
 fun <K>normalize(values: Map<K, Double>, weight: Double): Map<K, Double> {
     val max = values.values.max() ?: return values
-    return values.mapValues { weight * it.value / max }
+    val scale = if (significantlyEqual(max, 0.0)) {
+        weight
+    } else {
+        weight / max
+    }
+    return values.mapValues { scale * it.value }
 }
 
 fun <K>addMaps(target: MutableMap<K, Double>, addition: Map<K, Double>) {

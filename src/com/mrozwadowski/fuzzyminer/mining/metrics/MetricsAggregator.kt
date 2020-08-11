@@ -1,5 +1,6 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
+import com.mrozwadowski.fuzzyminer.utils.significantlyGreater
 import org.deckfour.xes.classification.XEventClass
 
 class MetricsAggregator(
@@ -48,7 +49,7 @@ class MetricsAggregator(
         val values = if (metric.normalize) {
             metric.values.mapValues { (key, value) ->
                 val normalizationFactor = normalizationFactors.getOrDefault(key, 1.0)
-                if (normalizationFactor > 1e-8) {
+                if (significantlyGreater(normalizationFactor, 0.0)) {
                     value / normalizationFactor
                 } else {
                     0.0
