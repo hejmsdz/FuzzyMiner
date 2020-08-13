@@ -10,12 +10,11 @@ class DerivedMetricsCalculator(
 ) {
     fun calculate() {
         val derivedUnarySignificance = deriveUnaryMetrics(unarySignificance)
-        addMaps(aggregator.aggregateUnarySignificance, derivedUnarySignificance)
-
         val derivedBinarySignificance = deriveBinaryMetrics(binarySignificance)
-        addMaps(aggregator.aggregateBinarySignificance, derivedBinarySignificance)
-
         val derivedBinaryCorrelation = deriveBinaryMetrics(binaryCorrelation)
+
+        addMaps(aggregator.aggregateUnarySignificance, derivedUnarySignificance)
+        addMaps(aggregator.aggregateBinarySignificance, derivedBinarySignificance)
         addMaps(aggregator.aggregateBinaryCorrelation, derivedBinaryCorrelation)
     }
 
