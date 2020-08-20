@@ -28,7 +28,7 @@ internal class ConcurrencyFilterTest {
         val conflicts = findConflicts(graph)
 
         assertEquals(2, conflicts.size)
-        assertTrue(setOf(a, d) in conflicts)
-        assertTrue(setOf(b, c) in conflicts)
+        assertTrue((a to d) in conflicts)
+        assertTrue((b to c) in conflicts)
     }
 }

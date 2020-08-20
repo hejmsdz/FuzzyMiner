@@ -1,6 +1,8 @@
 package com.mrozwadowski.fuzzyminer.mining.metrics
 
 import com.mrozwadowski.fuzzyminer.mining.metrics.attenuation.Attenuation
+import com.mrozwadowski.fuzzyminer.utils.significantlyEqual
+import com.mrozwadowski.fuzzyminer.utils.significantlyGreater
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.model.XEvent
@@ -93,13 +95,13 @@ class MetricsStore(
 
     private val aggregator = MetricsAggregator(unarySignificance, binarySignificance, binaryCorrelation, normalizationFactors)
 
-    fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Double = 1.0) {
+    fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Int = 1) {
         val maxDistance = if (attenuation == null) 1 else attenuation.maxDistance
 
         log.forEach { trace ->
             trace.withIndex().forEach { (i, event) ->
                 val eventClass = eventClasses.getClassOf(event)
-                processEvent(event, eventClass, factor)
+                processEvent(event, eventClass, factor.toDouble())
 
                 val lookBack = minOf(maxDistance ?: i, i)
                 for (distance in 1..lookBack) {
@@ -109,7 +111,7 @@ class MetricsStore(
                 }
             }
         }
-        tracesProcessed += log.size
+        tracesProcessed += log.size * factor
         calculateDerivedMetrics()
     }
 
@@ -123,11 +125,12 @@ class MetricsStore(
         val binaryCorrelationNames = binaryCorrelationObjects.keys.toList()
 
         val eventClasses = aggregateUnarySignificance.keys.map { it.id to it }.toMap()
-        val eventClassNames = eventClasses.keys.toList()
+        val eventClassNames = eventClasses.filterValues { significantlyGreater(aggregateUnarySignificance[it]?: 0.0, 0.0) }.keys.toList().sorted()
+        val n = eventClassNames.size
 
-        val unarySignificanceMatrix = Array(unarySignificanceNames.size) { Array(eventClasses.size) { 0.0 } }
-        val binarySignificanceMatrix = Array(binarySignificanceNames.size) { Array(eventClasses.size) { Array(eventClasses.size) { 0.0 } } }
-        val binaryCorrelationMatrix = Array(binaryCorrelationNames.size) { Array(eventClasses.size) { Array(eventClasses.size) { 0.0 } } }
+        val unarySignificanceMatrix = Array(unarySignificanceNames.size) { Array(n) { 0.0 } }
+        val binarySignificanceMatrix = Array(binarySignificanceNames.size) { Array(n) { Array(n) { 0.0 } } }
+        val binaryCorrelationMatrix = Array(binaryCorrelationNames.size) { Array(n) { Array(n) { 0.0 } } }
 
         unarySignificanceNames.forEachIndexed { i, metricName ->
             val metric = unarySignificanceObjects[metricName]
@@ -143,7 +146,10 @@ class MetricsStore(
                 val eventClass1 = eventClasses[eventClassName1] ?: ""
                 eventClassNames.forEachIndexed { k, eventClassName2 ->
                     val eventClass2 = eventClasses[eventClassName2] ?: ""
-                    binarySignificanceMatrix[i][j][k] = (metric?.values?.get(eventClass1 to eventClass2) ?: 0.0) / tracesProcessed
+                    val value = metric?.values?.get(eventClass1 to eventClass2) ?: 0.0
+                    if (significantlyGreater(value, 0.0)) {
+                        binarySignificanceMatrix[i][j][k] = value / tracesProcessed
+                    }
                 }
             }
         }
@@ -154,7 +160,10 @@ class MetricsStore(
                 val eventClass1 = eventClasses[eventClassName1] ?: ""
                 eventClassNames.forEachIndexed { k, eventClassName2 ->
                     val eventClass2 = eventClasses[eventClassName2] ?: ""
-                    binaryCorrelationMatrix[i][j][k] = (metric?.values?.get(eventClass1 to eventClass2) ?: 0.0) / tracesProcessed
+                    val value = metric?.values?.get(eventClass1 to eventClass2) ?: 0.0
+                    if (significantlyGreater(value, 0.0)) {
+                        binaryCorrelationMatrix[i][j][k] = value / tracesProcessed
+                    }
                 }
             }
         }
@@ -247,7 +256,12 @@ class MetricsStore(
 
 fun <K>normalize(values: Map<K, Double>, weight: Double): Map<K, Double> {
     val max = values.values.max() ?: return values
-    return values.mapValues { weight * it.value / max }
+    val scale = if (significantlyEqual(max, 0.0)) {
+        weight
+    } else {
+        weight / max
+    }
+    return values.mapValues { scale * it.value }
 }
 
 fun <K>addMaps(target: MutableMap<K, Double>, addition: Map<K, Double>) {
