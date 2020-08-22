@@ -6,27 +6,48 @@ import com.mrozwadowski.fuzzyminer.input.getLogReader
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
 import org.deckfour.xes.classification.XEventNameClassifier
+import org.deckfour.xes.model.XLog
 import java.io.File
 import java.lang.management.ManagementFactory
 
 fun main() {
-    val logFiles = File("experimentData").listFiles()
+    val dao = CsvDao("./results.csv")
+    val logFiles = File("experimentData").listFiles()?.slice(0 until 3)
     logFiles?.forEach { logFile ->
-        println(logFile)
+        val log = getLogReader(logFile).readLog()
+        println("$logFile (${log.size} traces)")
 
-        (10..50 step 10).forEach { windowSize ->
-            listOf(windowSize / 5, windowSize / 2, 3 * windowSize / 5).forEach { stride ->
+        (20..200 step 20).forEach { windowSize ->
+            (1..4).map { windowSize * it / 5 }.forEach { stride ->
                 println("$windowSize : $stride")
-                OnlineWindowComparison(logFile, windowSize, stride).run()
+                val exp = OnlineWindowComparison(dao, log, logFile.name, windowSize, stride)
+                (1..5).forEach { exp.run() }
             }
         }
     }
+    dao.close()
 }
 
-class OnlineWindowComparison(private val logFile: File, private val windowSize: Int, private val stride: Int) {
-    val log = getLogReader(logFile).readLog()
-    val window = SlidingWindow(log, windowSize, stride)
-    val classifier = XEventNameClassifier()
+class CsvDao(path: String) {
+    private val file = File(path)
+    private val writer = file.printWriter()
+
+    init {
+        writer.println("log,windowSize,stride,step,onlineTime,offlineTime")
+    }
+
+    fun insert(logName: String, windowSize: Int, stride: Int, step: Int, onlineTime: Long, offlineTime: Long) {
+        writer.println("$logName,$windowSize,$stride,$step,$onlineTime,$offlineTime")
+    }
+
+    fun close() {
+        writer.close()
+    }
+}
+
+class OnlineWindowComparison(private val dao: CsvDao?, log: XLog, private val logName: String, private val windowSize: Int, private val stride: Int) {
+    private val window = SlidingWindow(log, windowSize, stride)
+    private val classifier = XEventNameClassifier()
 
     fun run() {
         val onlineMetrics = metricsFactory()
@@ -52,7 +73,7 @@ class OnlineWindowComparison(private val logFile: File, private val windowSize: 
     }
 
     private fun reportTime(step: Int, onlineTime: Long, offlineTime: Long) {
-        println("${logFile.name},$windowSize,$stride,$step,$onlineTime,$offlineTime")
+        dao?.insert(logName, windowSize, stride, step, onlineTime, offlineTime)
     }
 }
 
