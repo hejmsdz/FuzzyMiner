@@ -13,7 +13,7 @@ class DistanceSignificance: DerivedBinaryMetric() {
             val aSignificance = (unarySignificance[eventClasses.first] ?: 0.0) / logBasedUnarySignificanceWeight
             val bSignificance = (unarySignificance[eventClasses.second] ?: 0.0) / logBasedUnarySignificanceWeight
             if (aSignificance > 0 && bSignificance > 0)
-            values[eventClasses] = 1.0 - ((aSignificance - abSignificance) + (bSignificance - abSignificance)) / (aSignificance + bSignificance)
+            values[eventClasses] = 2 * (abSignificance / (aSignificance + bSignificance))
         }
     }
 }
