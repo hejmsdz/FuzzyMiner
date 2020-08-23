@@ -2,20 +2,22 @@ package com.mrozwadowski.fuzzyminer.mining.simplification
 
 import com.mrozwadowski.fuzzyminer.data.graph.Edge
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
-import com.mrozwadowski.fuzzyminer.data.graph.Node
-import com.mrozwadowski.fuzzyminer.utils.significantlyLess
+import com.mrozwadowski.fuzzyminer.utils.significantlyGreater
 
 class EdgeFilter(private val graph: Graph) {
     fun apply(utilityRatio: Double, cutoff: Double): Graph {
-        val edgesToRemove = graph.nodes
-            .map { graph.edgesTo(it) }
+        val allEdges = graph.allEdges()
+
+        val edgesToPreserve = graph.nodes
+            .flatMap { listOf(graph.edgesFrom(it), graph.edgesTo(it)) }
             .filterNot { it.isEmpty() }
             .flatMap { edges ->
                 relativeUtilities(edges, utilityRatio)
-                    .filterValues { significantlyLess(it, cutoff) }
+                    .filterValues { significantlyGreater(it, cutoff) }
                     .keys
                     .map { it.source to it.target }
-        }
+        }.toSet()
+        val edgesToRemove = allEdges - edgesToPreserve
 
         return graph.withoutEdges(edgesToRemove)
     }
@@ -25,7 +27,11 @@ class EdgeFilter(private val graph: Graph) {
         val min = utilities.values.min()!!
         val max = utilities.values.max()!!
         val range = max - min
-        return utilities.mapValues { (it.value - min) / range }
+        return if (significantlyGreater(range, 0.0)) {
+            utilities.mapValues { (it.value - min) / range }
+        } else {
+            utilities.mapValues { 1.0 }
+        }
     }
 
     private fun utility(edge: Edge, utilityRatio: Double): Double {
