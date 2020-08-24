@@ -10,12 +10,13 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 internal class TraceReplayerTest {
-    private val validTraces = listOf("abdef", "abcdf", "abf")
+    private val validTraces = listOf("abdef", "abcdf")
     private val invalidTraces = listOf(
         "abdcf", // invalid transition d -> c
         "abddf", // invalid transition d -> d
         "abfef", // invalid transition from final activity
         "bcdef", // invalid starting activity (should start with a)
+        "agf", // unknown activity g
         "abd" // invalid final activity (should end with f)
     )
     private val validLog = createSimpleLog(validTraces)
@@ -51,14 +52,19 @@ internal class TraceReplayerTest {
 
     @Test
     fun replayTrace() {
-        invalidLog.forEach { assertFalse(replayer.replayTrace(it)) }
-        validLog.forEach { assertTrue(replayer.replayTrace(it)) }
+        validLog.forEach { assertEquals(1.0, replayer.replayTrace(it)) }
+
+        assertEquals(1.0, replayer.replayTrace(invalidLog[0]), 0.001)
+        assertEquals(0.833, replayer.replayTrace(invalidLog[1]), 0.001)
+        assertEquals(0.833, replayer.replayTrace(invalidLog[3]), 0.001)
+        assertEquals(0.5, replayer.replayTrace(invalidLog[4]), 0.001)
+        assertEquals(0.75, replayer.replayTrace(invalidLog[5]), 0.001)
     }
 
     @Test
     fun replayLog() {
-        assertEquals(0.0, replayer.replayLog(invalidLog))
+        assertEquals(0.764, replayer.replayLog(invalidLog), 0.001)
         assertEquals(1.0, replayer.replayLog(validLog))
-        assertEquals(0.375, replayer.replayLog(completeLog))
+        assertEquals(0.823, replayer.replayLog(completeLog), 0.001)
     }
 }
