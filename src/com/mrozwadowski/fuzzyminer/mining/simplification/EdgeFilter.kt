@@ -23,15 +23,16 @@ class EdgeFilter(private val graph: Graph) {
     }
 
     fun relativeUtilities(edges: Collection<Edge>, utilityRatio: Double): Map<Edge, Double> {
-        val utilities = edges.associateWith { utility(it, utilityRatio) }
-        val min = utilities.values.min()!!
-        val max = utilities.values.max()!!
+        val utilities = edges.filterNot { it.source == it.target }
+            .associateWith { utility(it, utilityRatio) }
+        val min = utilities.values.min() ?: 0.0
+        val max = utilities.values.max() ?: 0.0
         val range = max - min
         return if (significantlyGreater(range, 0.0)) {
             utilities.mapValues { (it.value - min) / range }
         } else {
             utilities.mapValues { 1.0 }
-        }
+        } + edges.filter { it.source == it.target }.associateWith { 1.0 }
     }
 
     private fun utility(edge: Edge, utilityRatio: Double): Double {
