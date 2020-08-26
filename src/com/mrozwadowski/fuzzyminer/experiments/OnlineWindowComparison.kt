@@ -23,12 +23,10 @@ fun main() {
         val log = getLogReader(logFile).readLog()
         println("$logFile (${log.size} traces)")
 
-//        (10..50 step 10).forEach { windowSize ->
-        listOf(20).forEach { windowSize ->
-            listOf(10 /* windowSize / 5, windowSize / 2, 3 * windowSize / 5 */).forEach { stride ->
+        (10..50 step 10).forEach { windowSize ->
+            listOf(windowSize / 5, windowSize / 2, 3 * windowSize / 5).forEach { stride ->
                 println("$windowSize : $stride")
                 OnlineWindowComparison(log, windowSize, stride).testGraphIdentity()
-                return
             }
         }
     }
@@ -42,32 +40,20 @@ class OnlineWindowComparison(log: XLog, windowSize: Int, stride: Int) {
         val onlineMetrics = metricsFactory()
         val onlineMiner = OnlineFuzzyMiner(classifier, onlineMetrics)
 
-        println("Learning initial window")
         onlineMiner.learn(window.initial())
         window.steps().forEach { step ->
-            println("Processing a log fragment")
-            println("<online>")
             onlineMiner.learn(window.incoming(step))
             onlineMiner.unlearn(window.outgoing(step))
             val onlineGraph = onlineMiner.graph
-            println("</online>")
 
-            println("<offline>")
             val fragment = window.fragment(step)
             val offlineMetrics = metricsFactory()
             val offlineMiner = FuzzyMiner(fragment, classifier, offlineMetrics)
             val offlineGraph = offlineMiner.mine()
-            println("</offline>")
-
-//            println(onlineMetrics.dumpMetrics())
-//            println(offlineMetrics.dumpMetrics())
-//            println(JSON(onlineGraph))
-//            println(JSON(offlineGraph))
             compareMetrics(onlineMetrics, offlineMetrics)
             if (!compareGraphs(onlineGraph, offlineGraph, verbose = true)) {
                 println("### Mismatch found!")
             }
-            println()
         }
     }
 }
