@@ -3,13 +3,13 @@ package com.mrozwadowski.fuzzyminer.mining.metrics
 import com.mrozwadowski.fuzzyminer.mining.metrics.attenuation.NRootAttenuation
 
 fun defaultMetrics(): MetricsStore = MetricsStore(mapOf(
-    UnaryFrequency() to 0.4,
-    RoutingSignificance() to 0.6
+    UnaryFrequency() to 0.5,
+    RoutingSignificance() to 0.5
 ), mapOf(
-    BinaryFrequency() to 0.7,
-    DistanceSignificance() to 0.3
+    BinaryFrequency() to 0.5,
+    DistanceSignificance() to 0.5
 ), mapOf(
-    EndpointCorrelation() to 0.4,
-    OriginatorCorrelation() to 0.4,
-    ProximityCorrelation() to 0.2
-), NRootAttenuation(2.7, 5))
+    EndpointCorrelation() to 0.3,
+    OriginatorCorrelation() to 0.3,
+    ProximityCorrelation() to 0.4
+), NRootAttenuation(2.7, 4))

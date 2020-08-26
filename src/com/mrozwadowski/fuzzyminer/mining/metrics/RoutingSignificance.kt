@@ -15,8 +15,8 @@ class RoutingSignificance: DerivedUnaryMetric() {
             var inValue = 0.0
             var outValue = 0.0
             nodes.filter { it != node1 }.forEach { node2 ->
-                val inTerm = binarySignificance[node2 to node1] ?: 0.0
-                val outTerm = binarySignificance[node1 to node2] ?: 0.0
+                val inTerm = (binarySignificance[node2 to node1] ?: 0.0) * (binaryCorrelation[node2 to node1] ?: 0.0)
+                val outTerm = (binarySignificance[node1 to node2] ?: 0.0) * (binaryCorrelation[node1 to node2] ?: 0.0)
                 if (significantlyGreater(inTerm, 0.0)) inValue += inTerm
                 if (significantlyGreater(outTerm, 0.0)) outValue += outTerm
             }
