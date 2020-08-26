@@ -84,6 +84,8 @@ class MetricsStore(
     private val metrics = unarySignificance.keys + binarySignificance.keys + binaryCorrelation.keys
     private val logBasedUnaryMetrics = metrics.filterIsInstance<LogBasedUnaryMetric>()
     private val logBasedBinaryMetrics = metrics.filterIsInstance<LogBasedBinaryMetric>()
+    private val derivedUnaryMetrics = metrics.filterIsInstance<DerivedUnaryMetric>()
+    private val derivedBinaryMetrics = metrics.filterIsInstance<DerivedBinaryMetric>()
 
     val normalizationFactors = mutableMapOf<XEventClassPair, Double>()
 
@@ -111,6 +113,7 @@ class MetricsStore(
                 }
             }
         }
+//        println(logBasedBinaryMetrics.map { it to it.values }.toMap())
         tracesProcessed += log.size * factor
         calculateDerivedMetrics()
     }
@@ -250,6 +253,8 @@ class MetricsStore(
     }
 
     fun reset() {
+        derivedUnaryMetrics.forEach { it.reset() }
+        derivedBinaryMetrics.forEach { it.reset() }
         aggregator.reset()
     }
 }
