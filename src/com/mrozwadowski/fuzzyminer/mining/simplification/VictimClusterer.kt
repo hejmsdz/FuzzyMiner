@@ -29,8 +29,10 @@ class VictimClusterer(private val graph: Graph) {
 
         victims.sortedBy { it.toString() }.forEach { victim ->
             val mostCorrelatedNeighbor = graph.neighbors(victim)
-                .sortedBy { it.toString() }
-                .maxBy { graph.edgeBetween(victim, it)?.correlation ?: 0.0 }
+                .maxWith(compareBy(
+                    { graph.edgeBetween(victim, it)?.correlation ?: 0.0 },
+                    { it.toString() }
+                ))
             val cluster = assignment.getOrDefault(mostCorrelatedNeighbor, 0)
             assignment[victim] = if (cluster == 0) nextCluster++ else cluster
         }
