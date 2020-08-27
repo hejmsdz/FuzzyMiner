@@ -8,27 +8,31 @@ import com.mrozwadowski.fuzzyminer.mining.metrics.defaultMetrics
 import com.mrozwadowski.fuzzyminer.mining.metrics.minimalMetrics
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.simplification.ConcurrencyFilter
+import com.mrozwadowski.fuzzyminer.output.Dot
+import com.mrozwadowski.fuzzyminer.output.JSON
 import com.mrozwadowski.fuzzyminer.utils.significantlyEqual
 import org.deckfour.xes.classification.XEventNameClassifier
+import org.deckfour.xes.model.XLog
 import java.io.File
 import kotlin.math.absoluteValue
 
 fun main() {
-    val logFiles = File("experimentData").listFiles()
-    logFiles?.forEach { logFile ->
-        println(logFile)
+//    val logFiles = File("experimentData").listFiles()?.toList() ?: listOf()
+    val logFiles = listOf(File("sampleData/journal_review.xes"))
+    logFiles.forEach { logFile ->
+        val log = getLogReader(logFile).readLog()
+        println("$logFile (${log.size} traces)")
 
         (10..50 step 10).forEach { windowSize ->
             listOf(windowSize / 5, windowSize / 2, 3 * windowSize / 5).forEach { stride ->
                 println("$windowSize : $stride")
-                OnlineWindowComparison(logFile, windowSize, stride).testGraphIdentity()
+                OnlineWindowComparison(log, windowSize, stride).testGraphIdentity()
             }
         }
     }
 }
 
-class OnlineWindowComparison(logFile: File, windowSize: Int, stride: Int) {
-    val log = getLogReader(logFile).readLog()
+class OnlineWindowComparison(log: XLog, windowSize: Int, stride: Int) {
     val window = SlidingWindow(log, windowSize, stride)
     val classifier = XEventNameClassifier()
 
@@ -46,14 +50,15 @@ class OnlineWindowComparison(logFile: File, windowSize: Int, stride: Int) {
             val offlineMetrics = metricsFactory()
             val offlineMiner = FuzzyMiner(fragment, classifier, offlineMetrics)
             val offlineGraph = offlineMiner.mine()
-
-            compareGraphs(onlineGraph, offlineGraph)
             compareMetrics(onlineMetrics, offlineMetrics)
+            if (!compareGraphs(onlineGraph, offlineGraph, verbose = true)) {
+                println("### Mismatch found!")
+            }
         }
     }
 }
 
-fun metricsFactory() = minimalMetrics()
+fun metricsFactory() = defaultMetrics()
 
 fun compareMetrics(metrics1: MetricsStore, metrics2: MetricsStore) {
     metrics1.aggregateUnarySignificance.forEach { (key, value) ->
@@ -134,24 +139,4 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
     }
 
     return nodeDiff == 0 && edgeDiff == 0 && metricDiff == 0.0
-
-    /*
-    if (nodeDiff > 0) {
-        print("ND=$nodeDiff ")
-    }
-    if (edgeDiff > 0) {
-        print("ED = $edgeDiff ")
-    }
-    if (metricDiff > 0.0) {
-        print("MD = $metricDiff ")
-    }
-
-    if (nodeDiff == 0 && edgeDiff == 0 /* && metricDiff == 0.0 */) {
-        if (verbose) {
-            println("Perfect match!")
-        }
-    } else {
-        println()
-    }
-    */
 }
