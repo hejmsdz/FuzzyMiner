@@ -29,8 +29,10 @@ class VictimClusterer(private val graph: Graph) {
 
         victims.sortedBy { it.toString() }.forEach { victim ->
             val mostCorrelatedNeighbor = graph.neighbors(victim)
-                .sortedBy { it.toString() }
-                .maxBy { graph.edgeBetween(victim, it)?.correlation ?: 0.0 }
+                .maxWith(compareBy(
+                    { graph.edgeBetween(victim, it)?.correlation ?: 0.0 },
+                    { it.toString() }
+                ))
             val cluster = assignment.getOrDefault(mostCorrelatedNeighbor, 0)
             assignment[victim] = if (cluster == 0) nextCluster++ else cluster
         }
@@ -56,20 +58,20 @@ fun createEdge(graph: Graph, source: Node, target: Node): Edge {
     var correlation = 0.0
 
     if (source is NodeCluster && target is PrimitiveNode) {
-        significance = average(source.nodes.map { graph.edgeBetween(it, target)?.significance })
-        correlation = average(source.nodes.map { graph.edgeBetween(it, target)?.correlation })
+        significance = max(source.nodes.map { graph.edgeBetween(it, target)?.significance })
+        correlation = max(source.nodes.map { graph.edgeBetween(it, target)?.correlation })
     }
     if (source is PrimitiveNode && target is NodeCluster) {
-        significance = average(target.nodes.map { graph.edgeBetween(source, it)?.significance })
-        correlation = average(target.nodes.map { graph.edgeBetween(source, it)?.correlation })
+        significance = max(target.nodes.map { graph.edgeBetween(source, it)?.significance })
+        correlation = max(target.nodes.map { graph.edgeBetween(source, it)?.correlation })
     }
     if (source is NodeCluster && target is NodeCluster) {
-        significance = average(source.nodes.flatMap { sourceNode ->
+        significance = max(source.nodes.flatMap { sourceNode ->
             target.nodes.map { targetNode ->
                 graph.edgeBetween(sourceNode, targetNode)?.significance
             }
         })
-        correlation = average(source.nodes.flatMap { sourceNode ->
+        correlation = max(source.nodes.flatMap { sourceNode ->
             target.nodes.map { targetNode ->
                 graph.edgeBetween(sourceNode, targetNode)?.significance
             }
@@ -79,10 +81,7 @@ fun createEdge(graph: Graph, source: Node, target: Node): Edge {
     return Edge(source, target, significance, correlation)
 }
 
-fun average(values: Collection<Double?>): Double {
+fun max(values: Collection<Double?>): Double {
     val valuesNotNull = values.filterNotNull()
-    if (valuesNotNull.isEmpty()) {
-        return 0.0
-    }
-    return valuesNotNull.average()
+    return valuesNotNull.max() ?: 0.0
 }

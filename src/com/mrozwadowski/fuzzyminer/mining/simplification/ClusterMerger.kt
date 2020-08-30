@@ -41,7 +41,10 @@ class ClusterMerger(private val graph: Graph) {
             return null
         }
         val clusterNeighbors = neighbors.filterIsInstance<NodeCluster>()
-        return clusterNeighbors.maxBy { graph.edgeBetween(node, it)?.correlation ?: 0.0 }
+        return clusterNeighbors.maxWith(compareBy(
+            { graph.edgeBetween(node, it)?.correlation ?: 0.0 },
+            { it.toString() }
+        ))
     }
 
     private fun mergeClusters(a: NodeCluster, b: NodeCluster) {
