@@ -97,7 +97,19 @@ class MetricsStore(
 
     private val aggregator = MetricsAggregator(unarySignificance, binarySignificance, binaryCorrelation, normalizationFactors)
 
+    fun calculateFromBatches(batches: Collection<Triple<XLog, XEventClasses, Int>>) {
+        batches.forEach { (log, eventClasses, factor) ->
+            calculateLogBasedMetrics(log, eventClasses, factor)
+        }
+        calculateDerivedMetrics()
+    }
+
     fun calculateFromLog(log: XLog, eventClasses: XEventClasses, factor: Int = 1) {
+        calculateLogBasedMetrics(log, eventClasses, factor)
+        calculateDerivedMetrics()
+    }
+
+    private fun calculateLogBasedMetrics(log: XLog, eventClasses: XEventClasses, factor: Int = 1) {
         val maxDistance = if (attenuation == null) 1 else attenuation.maxDistance
 
         log.forEach { trace ->
@@ -113,9 +125,7 @@ class MetricsStore(
                 }
             }
         }
-//        println(logBasedBinaryMetrics.map { it to it.values }.toMap())
         tracesProcessed += log.size * factor
-        calculateDerivedMetrics()
     }
 
     fun dumpMetrics(): MetricsDump {

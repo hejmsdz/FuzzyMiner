@@ -42,8 +42,7 @@ class OnlineWindowComparison(log: XLog, windowSize: Int, stride: Int) {
 
         onlineMiner.learn(window.initial())
         window.steps().forEach { step ->
-            onlineMiner.learn(window.incoming(step))
-            onlineMiner.unlearn(window.outgoing(step))
+            onlineMiner.learnUnlearn(window.incoming(step), window.outgoing(step))
             val onlineGraph = onlineMiner.graph
 
             val fragment = window.fragment(step)

@@ -31,6 +31,14 @@ class OnlineFuzzyMiner(
     private var savedGraph: Graph = Graph(listOf(), mapOf())
     private var isGraphStale = false
 
+    fun learnUnlearn(incoming: XLog, outgoing: XLog) {
+        metrics.reset()
+        metrics.calculateFromBatches(listOf(
+            Triple(incoming, getEventClasses(incoming), 1),
+            Triple(outgoing, getEventClasses(outgoing), -1)
+        ))
+    }
+
     fun learn(log: XLog) {
         val eventClasses = getEventClasses(log)
         metrics.reset()
