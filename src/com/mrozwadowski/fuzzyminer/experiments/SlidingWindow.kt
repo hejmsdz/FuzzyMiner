@@ -32,7 +32,8 @@ class SlidingWindow(
     }
 
     private fun logSlice(position: Int, length: Int): XLog {
-        val traces = log.subList(position, position + length)
+        val endIndex = minOf(position + length, log.size - 1)
+        val traces = log.subList(position, endIndex)
         val fragment = factory.createLog(log.attributes)
         fragment.addAll(traces)
         return fragment
