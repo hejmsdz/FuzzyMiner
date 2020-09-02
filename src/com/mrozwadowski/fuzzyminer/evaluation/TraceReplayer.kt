@@ -19,7 +19,7 @@ class TraceReplayer(private val graph: Graph, private val classifier: XEventClas
     }
 
     fun replayLog(log: XLog): Double {
-        return log.sumByDouble { replayTrace(it) } / log.size.toDouble()
+        return log.sumByDouble { replayTrace(it) * it.size } / log.sumBy { it.size }
     }
 
     fun replayTrace(trace: XTrace): Double {

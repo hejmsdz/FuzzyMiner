@@ -64,8 +64,8 @@ internal class TraceReplayerTest {
 
     @Test
     fun replayLog() {
-        assertEquals(0.733, replayer.replayLog(invalidLog), 0.001)
+        assertEquals(0.769, replayer.replayLog(invalidLog), 0.001)
         assertEquals(1.0, replayer.replayLog(validLog))
-        assertEquals(0.8, replayer.replayLog(completeLog), 0.001)
+        assertEquals(0.833, replayer.replayLog(completeLog), 0.001)
     }
 }
