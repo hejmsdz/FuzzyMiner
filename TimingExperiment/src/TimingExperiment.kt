@@ -7,25 +7,44 @@ import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
 import org.deckfour.xes.classification.XEventNameClassifier
 import org.deckfour.xes.model.XLog
+import sun.misc.Signal
 import java.io.File
 import java.lang.management.ManagementFactory
 
 fun main() {
-    val dao = CsvDao("./results.csv")
-    val logFiles = File("experimentData").listFiles()?.slice(0 until 3)
-    logFiles?.forEach { logFile ->
-        val log = getLogReader(logFile).readLog()
-        println("$logFile (${log.size} traces)")
+    val logFiles = File("experimentData").listFiles()?.sortedBy { it.length() }?.toList() ?: listOf()
 
-        (20..200 step 20).forEach { windowSize ->
-            (1..4).map { windowSize * it / 5 }.forEach { stride ->
-                println("$windowSize : $stride")
-                val exp = OnlineWindowComparison(dao, log, logFile.name, windowSize, stride)
-                (1..5).forEach { exp.run() }
-            }
-        }
+    var loop = true
+
+    Signal.handle(Signal("INT")) {
+        println("[program interrupted, will quit after completing this window configuration]")
+        loop = false
     }
-    dao.close()
+
+    println(logFiles)
+    (2..4).forEach { i ->
+        val dao = CsvDao("./results$i.csv")
+        logFiles.forEach eachLog@ { logFile ->
+            if (!loop) {
+                return
+            }
+            val log = getLogReader(logFile).readLog()
+            println("$logFile (${log.size} traces)")
+
+            (20..200 step 20).filter { it < log.size / 2 }.forEach eachWindowSize@ { windowSize ->
+                (1..4).map { windowSize * it / 5 }.forEach eachStride@ { stride ->
+                    print("$windowSize:$stride ")
+                    val exp = OnlineWindowComparison(dao, log, logFile.name, windowSize, stride)
+                    (1..5).forEach { exp.run() }
+                    if (!loop) {
+                        return@eachLog
+                    }
+                }
+            }
+            println()
+        }
+        dao.close()
+    }
 }
 
 class CsvDao(path: String) {
@@ -56,8 +75,7 @@ class OnlineWindowComparison(private val dao: CsvDao?, log: XLog, private val lo
         onlineMiner.learn(window.initial())
         window.steps().forEach { step ->
             val onlineTime = benchmark {
-                onlineMiner.learn(window.incoming(step))
-                onlineMiner.unlearn(window.outgoing(step))
+                onlineMiner.learnUnlearn(window.incoming(step), window.outgoing(step))
                 onlineMiner.graph
             }
 
