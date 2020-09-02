@@ -55,17 +55,17 @@ internal class TraceReplayerTest {
         validLog.forEach { assertEquals(1.0, replayer.replayTrace(it)) }
 
         assertEquals(1.0, replayer.replayTrace(invalidLog[0]), 0.001)
-        assertEquals(0.833, replayer.replayTrace(invalidLog[1]), 0.001)
-        assertEquals(0.833, replayer.replayTrace(invalidLog[2]), 0.001)
-        assertEquals(0.833, replayer.replayTrace(invalidLog[3]), 0.001)
-        assertEquals(0.5, replayer.replayTrace(invalidLog[4]), 0.001)
-        assertEquals(0.75, replayer.replayTrace(invalidLog[5]), 0.001)
+        assertEquals(0.8, replayer.replayTrace(invalidLog[1]), 0.001)
+        assertEquals(0.8, replayer.replayTrace(invalidLog[2]), 0.001)
+        assertEquals(0.8, replayer.replayTrace(invalidLog[3]), 0.001)
+        assertEquals(0.333, replayer.replayTrace(invalidLog[4]), 0.001)
+        assertEquals(0.667, replayer.replayTrace(invalidLog[5]), 0.001)
     }
 
     @Test
     fun replayLog() {
-        assertEquals(0.792, replayer.replayLog(invalidLog), 0.001)
+        assertEquals(0.733, replayer.replayLog(invalidLog), 0.001)
         assertEquals(1.0, replayer.replayLog(validLog))
-        assertEquals(0.844, replayer.replayLog(completeLog), 0.001)
+        assertEquals(0.8, replayer.replayLog(completeLog), 0.001)
     }
 }

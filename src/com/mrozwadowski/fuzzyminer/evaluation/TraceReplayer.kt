@@ -52,7 +52,7 @@ class TraceReplayer(private val graph: Graph, private val classifier: XEventClas
         }
 
         val deviations = matches.count { it != VALID }
-        return (trace.size - deviations + 1).toDouble() / (trace.size + 1)
+        return 1.0 - deviations.toDouble() / trace.size
     }
 
     private fun isValidStart(node: Node?): Boolean {
