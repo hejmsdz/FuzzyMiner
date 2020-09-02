@@ -37,6 +37,7 @@ class OnlineFuzzyMiner(
             Triple(incoming, getEventClasses(incoming), 1),
             Triple(outgoing, getEventClasses(outgoing), -1)
         ))
+        isGraphStale = true
     }
 
     fun learn(log: XLog) {
