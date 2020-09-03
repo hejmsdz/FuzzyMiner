@@ -17,7 +17,7 @@ fun experimentLoop(
     windowSizes: Iterable<Int> = (20..200 step 20),
     relativeStrides: Iterable<Double> = listOf(0.2, 0.4, 0.6, 0.8),
     callback: (XLog, Int, Int, String) -> Unit
-) {
+): Boolean {
     var loop = true
 
     Signal.handle(Signal("INT")) {
@@ -27,7 +27,7 @@ fun experimentLoop(
 
     logFiles.forEach eachLog@ { logFile ->
         if (!loop) {
-            return
+            return false
         }
         val log = getLogReader(logFile).readLog()
         val logName = logFile.nameWithoutExtension
@@ -44,4 +44,5 @@ fun experimentLoop(
         }
         println()
     }
+    return loop
 }

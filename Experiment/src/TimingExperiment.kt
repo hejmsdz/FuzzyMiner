@@ -14,11 +14,14 @@ fun main() {
     val logFiles = getLogFiles()
     (1..4).forEach { i ->
         val dao = CsvDao("./results$i.csv")
-        experimentLoop(logFiles) { log, windowSize, stride, logName ->
-            val exp = OnlineWindowComparison(dao, log, logName, windowSize, stride)
-            (1..5).forEach { exp.run() }
+        try {
+            experimentLoop(logFiles) { log, windowSize, stride, logName ->
+                val exp = OnlineWindowComparison(dao, log, logName, windowSize, stride)
+                (1..5).forEach { exp.run() }
+            } || return
+        } finally {
+            dao.close()
         }
-        dao.close()
     }
 }
 
