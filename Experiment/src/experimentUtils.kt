@@ -1,6 +1,7 @@
 package com.mrozwadowski.fuzzyminer.timingExperiment
 
 import com.mrozwadowski.fuzzyminer.input.getLogReader
+import com.mrozwadowski.fuzzyminer.mining.metrics.defaultMetrics
 import org.deckfour.xes.model.XLog
 import sun.misc.Signal
 import java.io.File
@@ -47,6 +48,8 @@ fun experimentLoop(
     }
     return loop
 }
+
+fun metricsFactory() = defaultMetrics()
 
 abstract class CsvDao(metrics: List<String>, path: String) {
     private val file = File(path)

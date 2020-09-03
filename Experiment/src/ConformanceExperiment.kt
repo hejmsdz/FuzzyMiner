@@ -1,38 +1,32 @@
-package com.mrozwadowski.fuzzyminer.experiments
+package com.mrozwadowski.fuzzyminer.timingExperiment
+
+import com.mrozwadowski.fuzzyminer.experiments.SlidingWindow
 
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
-import com.mrozwadowski.fuzzyminer.input.getLogReader
+import com.mrozwadowski.fuzzyminer.evaluation.TraceReplayer
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import com.mrozwadowski.fuzzyminer.mining.metrics.defaultMetrics
-import com.mrozwadowski.fuzzyminer.mining.metrics.minimalMetrics
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
-import com.mrozwadowski.fuzzyminer.mining.simplification.ConcurrencyFilter
-import com.mrozwadowski.fuzzyminer.output.Dot
-import com.mrozwadowski.fuzzyminer.output.JSON
 import com.mrozwadowski.fuzzyminer.utils.significantlyEqual
 import org.deckfour.xes.classification.XEventNameClassifier
 import org.deckfour.xes.model.XLog
-import java.io.File
-import kotlin.math.absoluteValue
 
 fun main() {
-//    val logFiles = File("experimentData").listFiles()?.toList() ?: listOf()
-    val logFiles = listOf(File("sampleData/journal_review.xes"))
-    logFiles.forEach { logFile ->
-        val log = getLogReader(logFile).readLog()
-        println("$logFile (${log.size} traces)")
-
-        (10..50 step 10).forEach { windowSize ->
-            listOf(windowSize / 5, windowSize / 2, 3 * windowSize / 5).forEach { stride ->
-                println("$windowSize : $stride")
-                OnlineWindowComparison(log, windowSize, stride).testGraphIdentity()
-            }
-        }
+    val logFiles = getLogFiles()
+    val dao = FitnessCsvDao("./conformance.csv")
+    try {
+        experimentLoop(logFiles) { log, windowSize, stride, logName ->
+            ConformanceComparison(dao, log, logName, windowSize, stride).testGraphIdentity()
+        } || return
+    } finally {
+        dao.close()
     }
 }
 
-class OnlineWindowComparison(log: XLog, windowSize: Int, stride: Int) {
+class FitnessCsvDao(path: String): CsvDao(listOf("identical", "fitness"), path)
+
+class ConformanceComparison(private val dao: CsvDao?, log: XLog, private val logName: String, private val windowSize: Int, private val stride: Int) {
     val window = SlidingWindow(log, windowSize, stride)
     val classifier = XEventNameClassifier()
 
@@ -49,15 +43,20 @@ class OnlineWindowComparison(log: XLog, windowSize: Int, stride: Int) {
             val offlineMetrics = metricsFactory()
             val offlineMiner = FuzzyMiner(fragment, classifier, offlineMetrics)
             val offlineGraph = offlineMiner.mine()
-            compareMetrics(onlineMetrics, offlineMetrics)
-            if (!compareGraphs(onlineGraph, offlineGraph, verbose = true)) {
-                println("### Mismatch found!")
-            }
+
+            val identical = if (compareGraphs(onlineGraph, offlineGraph, verbose = true)) 1 else 0
+
+            val replayer = TraceReplayer(onlineGraph, classifier)
+            val fitness = replayer.replayLog(fragment)
+
+            reportResults(step, identical, fitness)
         }
     }
-}
 
-fun metricsFactory() = defaultMetrics()
+    private fun reportResults(step: Int, identical: Int, fitness: Double) {
+        dao?.insert(logName, windowSize, stride, step, listOf(identical, fitness))
+    }
+}
 
 fun compareMetrics(metrics1: MetricsStore, metrics2: MetricsStore) {
     metrics1.aggregateUnarySignificance.forEach { (key, value) ->
@@ -100,12 +99,12 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
         val node2 = nodes2[nodeName]
         if (node1 == null) {
             nodeDiff++
-            println("$nodeName missing in online graph")
+            if (verbose) println("$nodeName missing in online graph")
             return@forEach
         }
         if (node2 == null) {
             nodeDiff++
-            println("$nodeName excessive in online graph")
+            if (verbose) println("$nodeName excessive in online graph")
             return@forEach
         }
         if (!significantlyEqual(node1.significance, node2.significance)) {
@@ -119,12 +118,12 @@ fun compareGraphs(onlineGraph: Graph, offlineGraph: Graph, verbose: Boolean = fa
         val edge2 = edges2[edgeName]
         if (edge1 == null) {
             edgeDiff++
-            println("$edgeName [sig = ${edge2?.significance}, cor = ${edge2?.correlation}] missing in online graph")
+            if (verbose) println("$edgeName [sig = ${edge2?.significance}, cor = ${edge2?.correlation}] missing in online graph")
             return@forEach
         }
         if (edge2 == null) {
             edgeDiff++
-            println("$edgeName [sig = ${edge1.significance}, cor = ${edge1.correlation}] excessive in online graph")
+            if (verbose) println("$edgeName [sig = ${edge1.significance}, cor = ${edge1.correlation}] excessive in online graph")
             return@forEach
         }
         if (!significantlyEqual(edge1.significance, edge2.significance)) {

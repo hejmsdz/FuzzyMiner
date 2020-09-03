@@ -1,13 +1,10 @@
 package com.mrozwadowski.fuzzyminer.timingExperiment
 
 import com.mrozwadowski.fuzzyminer.experiments.SlidingWindow
-import com.mrozwadowski.fuzzyminer.experiments.metricsFactory
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
 import org.deckfour.xes.classification.XEventNameClassifier
 import org.deckfour.xes.model.XLog
-import java.io.File
-import java.io.IOException
 import java.lang.management.ManagementFactory
 
 fun main() {
