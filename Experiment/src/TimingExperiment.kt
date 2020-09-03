@@ -9,10 +9,13 @@ import org.deckfour.xes.classification.XEventNameClassifier
 import org.deckfour.xes.model.XLog
 import sun.misc.Signal
 import java.io.File
+import java.io.IOException
 import java.lang.management.ManagementFactory
 
 fun main() {
-    val logFiles = File("experimentData").listFiles()?.sortedBy { it.length() }?.toList() ?: listOf()
+    val logFiles = (File("experimentData").listFiles()?.toList() ?: listOf())
+        .filter { it.extension == "xes" }
+        .sortedBy { it.length() }
 
     var loop = true
 
@@ -22,7 +25,7 @@ fun main() {
     }
 
     println(logFiles)
-    (2..4).forEach { i ->
+    (1..4).forEach { i ->
         val dao = CsvDao("./results$i.csv")
         logFiles.forEach eachLog@ { logFile ->
             if (!loop) {
@@ -49,6 +52,11 @@ fun main() {
 
 class CsvDao(path: String) {
     private val file = File(path)
+    init {
+        if (file.exists()) {
+            throw IOException("File $path already exists!")
+        }
+    }
     private val writer = file.printWriter()
 
     init {
