@@ -2,49 +2,21 @@ package com.mrozwadowski.fuzzyminer.timingExperiment
 
 import com.mrozwadowski.fuzzyminer.experiments.SlidingWindow
 import com.mrozwadowski.fuzzyminer.experiments.metricsFactory
-import com.mrozwadowski.fuzzyminer.input.getLogReader
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
 import org.deckfour.xes.classification.XEventNameClassifier
 import org.deckfour.xes.model.XLog
-import sun.misc.Signal
 import java.io.File
 import java.io.IOException
 import java.lang.management.ManagementFactory
 
 fun main() {
-    val logFiles = (File("experimentData").listFiles()?.toList() ?: listOf())
-        .filter { it.extension == "xes" }
-        .sortedBy { it.length() }
-
-    var loop = true
-
-    Signal.handle(Signal("INT")) {
-        println("[program interrupted, will quit after completing this window configuration]")
-        loop = false
-    }
-
-    println(logFiles)
+    val logFiles = getLogFiles()
     (1..4).forEach { i ->
         val dao = CsvDao("./results$i.csv")
-        logFiles.forEach eachLog@ { logFile ->
-            if (!loop) {
-                return
-            }
-            val log = getLogReader(logFile).readLog()
-            println("$logFile (${log.size} traces)")
-
-            (20..200 step 20).filter { it < log.size / 2 }.forEach eachWindowSize@ { windowSize ->
-                (1..4).map { windowSize * it / 5 }.forEach eachStride@ { stride ->
-                    print("$windowSize:$stride ")
-                    val exp = OnlineWindowComparison(dao, log, logFile.name, windowSize, stride)
-                    (1..5).forEach { exp.run() }
-                    if (!loop) {
-                        return@eachLog
-                    }
-                }
-            }
-            println()
+        experimentLoop(logFiles) { log, windowSize, stride, logName ->
+            val exp = OnlineWindowComparison(dao, log, logName, windowSize, stride)
+            (1..5).forEach { exp.run() }
         }
         dao.close()
     }
