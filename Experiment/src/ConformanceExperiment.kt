@@ -6,7 +6,6 @@ import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.evaluation.TraceReplayer
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
-import com.mrozwadowski.fuzzyminer.mining.metrics.defaultMetrics
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
 import com.mrozwadowski.fuzzyminer.utils.significantlyEqual
 import org.deckfour.xes.classification.XEventNameClassifier
