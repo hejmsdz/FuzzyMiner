@@ -20,7 +20,7 @@ class OnlineFuzzyMiner(
     private val classifier: XEventClassifier,
     private var metrics: MetricsStore
 ) {
-    var parameters = Parameters(0.2, 0.05, 0.5 ,0.2, 0.1)
+    var parameters = Parameters(0.6, 0.7, 0.75 ,0.8, 0.1)
 
     val graph: Graph
         get() {
