@@ -10,44 +10,49 @@ import org.deckfour.xes.model.XLog
 import org.deckfour.xes.model.XTrace
 
 class TraceReplayer(private val graph: Graph, private val classifier: XEventClassifier) {
+    companion object {
+        const val VALID = '.'
+        const val UNKNOWN = '?'
+        const val INVALID_START = '^'
+        const val INVALID_TRANSITION = '!'
+        const val INVALID_END = '$'
+    }
+
     fun replayLog(log: XLog): Double {
-        return log.sumByDouble { replayTrace(it) } / log.size.toDouble()
+        return log.sumByDouble { replayTrace(it) * it.size } / log.sumBy { it.size }
     }
 
     fun replayTrace(trace: XTrace): Double {
-        var deviations = 0
-        var currentNode: Node? = null
-        var validSuccessors = mutableSetOf<Node>()
+        var currentNode: Node?
+        val validSuccessors = mutableSetOf<Node>()
+        val matches = arrayOfNulls<Char>(trace.size)
 
         var lastNode: Node? = null
-        for (event in trace) {
+        for ((i, event) in trace.withIndex()) {
             currentNode = findNodeForEvent(event)
             if (currentNode == null) {
-                deviations++
+                matches[i] = UNKNOWN
                 continue
             }
+
             if (lastNode == null) {
-                if (!isValidStart(currentNode)) {
-                    deviations++
-                }
-                lastNode = currentNode
-                validSuccessors = graph.edgesFrom(currentNode).map { it.target }.toMutableSet()
-                continue
-            }
-            if (currentNode in validSuccessors) {
+                matches[i] = if (isValidStart(currentNode)) VALID else INVALID_START
+            } else if (currentNode in validSuccessors) {
                 validSuccessors.remove(currentNode)
-                validSuccessors.addAll(graph.edgesFrom(currentNode).map { it.target })
+                matches[i] = VALID
             } else {
-                deviations++
+                matches[i] = INVALID_TRANSITION
             }
+            validSuccessors.addAll(graph.edgesFrom(currentNode).map { it.target })
             lastNode = currentNode
         }
 
         if (!isValidEnd(lastNode)) {
-            deviations++
+            matches[matches.size - 1] = INVALID_END
         }
 
-        return (trace.size - deviations + 1).toDouble() / (trace.size + 1)
+        val deviations = matches.count { it != VALID }
+        return 1.0 - deviations.toDouble() / trace.size
     }
 
     private fun isValidStart(node: Node?): Boolean {

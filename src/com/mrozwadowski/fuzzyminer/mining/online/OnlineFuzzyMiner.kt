@@ -20,7 +20,7 @@ class OnlineFuzzyMiner(
     private val classifier: XEventClassifier,
     private var metrics: MetricsStore
 ) {
-    var parameters = Parameters(0.2, 0.05, 0.5 ,0.2, 0.1)
+    var parameters = Parameters(0.6, 0.7, 0.75 ,0.8, 0.1)
 
     val graph: Graph
         get() {
@@ -30,6 +30,15 @@ class OnlineFuzzyMiner(
 
     private var savedGraph: Graph = Graph(listOf(), mapOf())
     private var isGraphStale = false
+
+    fun learnUnlearn(incoming: XLog, outgoing: XLog) {
+        metrics.reset()
+        metrics.calculateFromBatches(listOf(
+            Triple(incoming, getEventClasses(incoming), 1),
+            Triple(outgoing, getEventClasses(outgoing), -1)
+        ))
+        isGraphStale = true
+    }
 
     fun learn(log: XLog) {
         val eventClasses = getEventClasses(log)
