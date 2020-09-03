@@ -4,6 +4,7 @@ import com.mrozwadowski.fuzzyminer.input.getLogReader
 import org.deckfour.xes.model.XLog
 import sun.misc.Signal
 import java.io.File
+import java.io.IOException
 import kotlin.math.roundToInt
 
 fun getLogFiles(): List<File> {
@@ -45,4 +46,28 @@ fun experimentLoop(
         println()
     }
     return loop
+}
+
+abstract class CsvDao(metrics: List<String>, path: String) {
+    private val file = File(path)
+    init {
+        if (file.exists()) {
+            throw IOException("File $path already exists!")
+        }
+    }
+    private val writer = file.printWriter()
+
+    init {
+        val headers = metrics.joinToString(",")
+        writer.println("log,windowSize,stride,step,$headers")
+    }
+
+    fun insert(logName: String, windowSize: Int, stride: Int, step: Int, metrics: List<Number>) {
+        val metricsStr = metrics.joinToString(",")
+        writer.println("$logName,$windowSize,$stride,$step,$metricsStr")
+    }
+
+    fun close() {
+        writer.close()
+    }
 }
