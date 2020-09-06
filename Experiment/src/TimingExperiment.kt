@@ -9,7 +9,7 @@ import java.lang.management.ManagementFactory
 
 fun main() {
     val logFiles = getLogFiles()
-    (1..4).forEach { i ->
+    (1..6).forEach { i ->
         val dao = TimingCsvDao("./results$i.csv")
         try {
             experimentLoop(logFiles) { log, windowSize, stride, logName ->
