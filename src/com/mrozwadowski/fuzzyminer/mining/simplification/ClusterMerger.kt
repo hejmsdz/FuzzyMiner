@@ -54,11 +54,21 @@ class ClusterMerger(private val graph: Graph) {
         clusters.add(newCluster)
 
         edges.removeIf { (it.source == a && it.target == b) || (it.source == b && it.target == a) }
-        val incomingEdges = edges.filter { it.target == a || it.target == b }
-        val outgoingEdges = edges.filter { it.source == a || it.source == b }
-        edges.removeAll(incomingEdges)
-        edges.removeAll(outgoingEdges)
-        edges.addAll(incomingEdges.map { Edge(it.source, newCluster) })
-        edges.addAll(outgoingEdges.map { Edge(newCluster, it.target) })
+        val incomingEdgesMap = edges.filter { it.target == a || it.target == b }.groupBy { it.source }
+        val outgoingEdgesMap = edges.filter { it.source == a || it.source == b }.groupBy { it.target }
+
+        incomingEdgesMap.forEach { source, incomingEdges ->
+            edges.removeAll(incomingEdges)
+            val significance = incomingEdges.map { it.significance }.max() ?: 0.0
+            val correlation = incomingEdges.map { it.correlation }.max() ?: 0.0
+            edges.add(Edge(source, newCluster, significance, correlation))
+        }
+
+        outgoingEdgesMap.forEach { target, outgoingEdges ->
+            edges.removeAll(outgoingEdges)
+            val significance = outgoingEdges.map { it.significance }.max() ?: 0.0
+            val correlation = outgoingEdges.map { it.correlation }.max() ?: 0.0
+            edges.add(Edge(newCluster, target, significance, correlation))
+        }
     }
 }
