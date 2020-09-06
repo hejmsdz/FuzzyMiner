@@ -6,12 +6,16 @@ import com.mrozwadowski.fuzzyminer.data.graph.Node
 import com.mrozwadowski.fuzzyminer.data.graph.NodeCluster
 
 class ClusterMerger(private val graph: Graph) {
+    companion object {
+        var debug = false
+    }
+
     private val primitives = graph.nodes.filter { it !is NodeCluster }
     private val clusters = graph.nodes.filterIsInstance<NodeCluster>().toMutableList()
     private val edges = graph.allEdgeObjects().toMutableSet()
 
     fun apply(): Graph {
-        while (true) {
+        while (clusters.size >= 2) {
             val clusterPair = findMergeCandidates() ?: break
             mergeClusters(clusterPair.first, clusterPair.second)
         }
@@ -22,27 +26,27 @@ class ClusterMerger(private val graph: Graph) {
     private fun findMergeCandidates(): Pair<NodeCluster, NodeCluster>? {
         clusters.forEach { cluster ->
             val predecessors = edges.filter { it.target == cluster }.map { it.source }
-            val predCandidate = chooseConnectedCluster(cluster, predecessors)
-            if (predCandidate !== null) {
+            val predCandidate = chooseConnectedCluster(cluster, predecessors, true)
+            if (predCandidate != null) {
                 return@findMergeCandidates cluster to predCandidate
             }
 
             val successors = edges.filter { it.source == cluster }.map { it.target }
-            val succCandidate = chooseConnectedCluster(cluster, successors)
-            if (succCandidate !== null) {
+            val succCandidate = chooseConnectedCluster(cluster, successors, false)
+            if (succCandidate != null) {
                 return@findMergeCandidates cluster to succCandidate
             }
         }
         return null
     }
 
-    private fun chooseConnectedCluster(node: Node, neighbors: Collection<Node>): NodeCluster? {
-        if (!neighbors.all { it is NodeCluster }) {
+    private fun chooseConnectedCluster(node: Node, neighbors: Collection<Node>, isPredecessor: Boolean): NodeCluster? {
+        if (neighbors.isEmpty() || !neighbors.all { it is NodeCluster }) {
             return null
         }
         val clusterNeighbors = neighbors.filterIsInstance<NodeCluster>()
         return clusterNeighbors.maxWith(compareBy(
-            { graph.edgeBetween(node, it)?.correlation ?: 0.0 },
+            { if (isPredecessor) { graph.edgeBetween(it, node) } else { graph.edgeBetween(node, it) }?.correlation ?: 0.0 },
             { it.toString() }
         ))
     }

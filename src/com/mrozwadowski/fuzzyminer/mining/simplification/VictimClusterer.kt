@@ -1,6 +1,7 @@
 package com.mrozwadowski.fuzzyminer.mining.simplification
 
 import com.mrozwadowski.fuzzyminer.data.graph.*
+import com.mrozwadowski.fuzzyminer.utils.approximateComparator
 import com.mrozwadowski.fuzzyminer.utils.significantlyLess
 
 class VictimClusterer(private val graph: Graph) {
@@ -28,11 +29,11 @@ class VictimClusterer(private val graph: Graph) {
         var nextCluster = 1
 
         victims.sortedBy { it.toString() }.forEach { victim ->
-            val mostCorrelatedNeighbor = graph.neighbors(victim)
-                .maxWith(compareBy(
-                    { graph.edgeBetween(victim, it)?.correlation ?: 0.0 },
-                    { it.toString() }
-                ))
+            val neighbors = graph.edgesFrom(victim).associate { it.target to it.correlation } + graph.edgesTo(victim).associate { it.source to it.correlation }
+            val mostCorrelatedNeighbor = neighbors.maxWith(
+                Comparator<Map.Entry<Node, Double>> { a, b -> approximateComparator.compare(a.value, b.value) }
+                    .thenBy { it.key.toString() }
+            )?.key
             val cluster = assignment.getOrDefault(mostCorrelatedNeighbor, 0)
             assignment[victim] = if (cluster == 0) nextCluster++ else cluster
         }
@@ -60,12 +61,10 @@ fun createEdge(graph: Graph, source: Node, target: Node): Edge {
     if (source is NodeCluster && target is PrimitiveNode) {
         significance = max(source.nodes.map { graph.edgeBetween(it, target)?.significance })
         correlation = max(source.nodes.map { graph.edgeBetween(it, target)?.correlation })
-    }
-    if (source is PrimitiveNode && target is NodeCluster) {
+    } else if (source is PrimitiveNode && target is NodeCluster) {
         significance = max(target.nodes.map { graph.edgeBetween(source, it)?.significance })
         correlation = max(target.nodes.map { graph.edgeBetween(source, it)?.correlation })
-    }
-    if (source is NodeCluster && target is NodeCluster) {
+    } else if (source is NodeCluster && target is NodeCluster) {
         significance = max(source.nodes.flatMap { sourceNode ->
             target.nodes.map { targetNode ->
                 graph.edgeBetween(sourceNode, targetNode)?.significance

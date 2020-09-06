@@ -8,9 +8,9 @@ class ProximityCorrelation: LogBasedBinaryMetric(normalize = true) {
         if (!previousEvent.attributes.containsKey("time:timestamp") || !event.attributes.containsKey("time:timestamp")) {
             return 0.0
         }
-        val timestamp0 = (previousEvent.attributes["time:timestamp"] as XAttributeTimestamp).valueMillis
-        val timestamp1 = (event.attributes["time:timestamp"] as XAttributeTimestamp).valueMillis
-        if (timestamp0 == timestamp1) {
+        val timestamp0 = (previousEvent.attributes["time:timestamp"] as XAttributeTimestamp).valueMillis / 1000
+        val timestamp1 = (event.attributes["time:timestamp"] as XAttributeTimestamp).valueMillis / 1000
+        if (timestamp0 - timestamp1 < 1) {
             return 1.0
         }
         return 1.0 / (timestamp1 - timestamp0).toDouble()
