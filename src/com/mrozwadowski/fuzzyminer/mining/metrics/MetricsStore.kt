@@ -226,6 +226,12 @@ class MetricsStore(
             }
         }
 
+        val binaryFrequency = binarySignificanceObjects[dump.binarySignificanceNames.indexOf("BinaryFrequency")]?.values
+        if (binaryFrequency != null) {
+            normalizationFactors.clear()
+            normalizationFactors.putAll(binaryFrequency)
+        }
+
         dump.binaryCorrelationMatrix.forEachIndexed { i, row ->
             val metric = binaryCorrelationObjects[i] ?: return@forEachIndexed
             metric.reset()
