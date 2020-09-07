@@ -30,10 +30,7 @@ class VictimClusterer(private val graph: Graph) {
 
         victims.sortedBy { it.toString() }.forEach { victim ->
             val neighbors = graph.edgesFrom(victim).associate { it.target to it.correlation } + graph.edgesTo(victim).associate { it.source to it.correlation }
-            val mostCorrelatedNeighbor = neighbors.maxWith(
-                Comparator<Map.Entry<Node, Double>> { a, b -> approximateComparator.compare(a.value, b.value) }
-                    .thenBy { it.key.toString() }
-            )?.key
+            val mostCorrelatedNeighbor = approximateDeterministicMax(neighbors)
             val cluster = assignment.getOrDefault(mostCorrelatedNeighbor, 0)
             assignment[victim] = if (cluster == 0) nextCluster++ else cluster
         }
@@ -83,4 +80,11 @@ fun createEdge(graph: Graph, source: Node, target: Node): Edge {
 fun max(values: Collection<Double?>): Double {
     val valuesNotNull = values.filterNotNull()
     return valuesNotNull.max() ?: 0.0
+}
+
+fun <T>approximateDeterministicMax(items: Map<T, Double>): T? {
+    return items.maxWith(
+        Comparator<Map.Entry<T, Double>> { a, b -> approximateComparator.compare(a.value, b.value) }
+            .thenBy { it.key.toString() }
+    )?.key
 }
