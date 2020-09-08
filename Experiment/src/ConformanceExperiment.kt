@@ -3,7 +3,9 @@ package com.mrozwadowski.fuzzyminer.timingExperiment
 import com.mrozwadowski.fuzzyminer.experiments.SlidingWindow
 
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
+import com.mrozwadowski.fuzzyminer.evaluation.PrecisionMeter
 import com.mrozwadowski.fuzzyminer.evaluation.TraceReplayer
+import com.mrozwadowski.fuzzyminer.evaluation.classifyLog
 import com.mrozwadowski.fuzzyminer.mining.FuzzyMiner
 import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import com.mrozwadowski.fuzzyminer.mining.online.OnlineFuzzyMiner
@@ -13,7 +15,7 @@ import org.deckfour.xes.model.XLog
 
 fun main() {
     val logFiles = getLogFiles()
-    val dao = FitnessCsvDao("./conformance.csv")
+    val dao = ConformanceCsvDao("./conformance.csv")
     try {
         experimentLoop(logFiles) { log, windowSize, stride, logName ->
             ConformanceComparison(dao, log, logName, windowSize, stride).testGraphIdentity()
@@ -23,7 +25,7 @@ fun main() {
     }
 }
 
-class FitnessCsvDao(path: String): CsvDao(listOf("identical", "fitness"), path)
+class ConformanceCsvDao(path: String): CsvDao(listOf("identical", "fitness", "precision"), path)
 
 class ConformanceComparison(private val dao: CsvDao?, log: XLog, private val logName: String, private val windowSize: Int, private val stride: Int) {
     val window = SlidingWindow(log, windowSize, stride)
@@ -45,15 +47,16 @@ class ConformanceComparison(private val dao: CsvDao?, log: XLog, private val log
 
             val identical = if (compareGraphs(onlineGraph, offlineGraph, verbose = true)) 1 else 0
 
-            val replayer = TraceReplayer(onlineGraph, classifier)
-            val fitness = replayer.replayLog(fragment)
+            val cFragment = classifyLog(fragment, classifier)
+            val fitness = TraceReplayer(onlineGraph, classifier).replayLog(cFragment)
+            val precision = PrecisionMeter(onlineGraph, classifier).calculate(cFragment)
 
-            reportResults(step, identical, fitness)
+            reportResults(step, identical, fitness, precision)
         }
     }
 
-    private fun reportResults(step: Int, identical: Int, fitness: Double) {
-        dao?.insert(logName, windowSize, stride, step, listOf(identical, fitness))
+    private fun reportResults(step: Int, identical: Int, fitness: Double, precision: Double) {
+        dao?.insert(logName, windowSize, stride, step, listOf(identical, fitness, precision))
     }
 }
 
