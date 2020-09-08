@@ -18,18 +18,21 @@ class TraceReplayer(private val graph: Graph, private val classifier: XEventClas
         const val INVALID_END = '$'
     }
 
-    fun replayLog(log: XLog): Double {
+    fun replayLog(log: XLog) = replayLog(classifyLog(log, classifier))
+    fun replayTrace(trace: XTrace) = replayTrace(classifyTrace(trace, classifier))
+
+    fun replayLog(log: ClassifiedLog): Double {
         return log.sumByDouble { replayTrace(it) * it.size } / log.sumBy { it.size }
     }
 
-    fun replayTrace(trace: XTrace): Double {
+    fun replayTrace(trace: ClassifiedTrace): Double {
         var currentNode: Node?
         val validSuccessors = mutableSetOf<Node>()
         val matches = arrayOfNulls<Char>(trace.size)
 
         var lastNode: Node? = null
         for ((i, event) in trace.withIndex()) {
-            currentNode = findNodeForEvent(event)
+            currentNode = findNode(graph, event)
             if (currentNode == null) {
                 matches[i] = UNKNOWN
                 continue
@@ -71,18 +74,5 @@ class TraceReplayer(private val graph: Graph, private val classifier: XEventClas
         val successors = graph.edgesFrom(node)
         val hasSelfLoopOnly = successors.size == 1 && successors.all { it.source == node }
         return successors.isEmpty() || hasSelfLoopOnly
-    }
-
-    private fun findNodeForEvent(event: XEvent): Node? {
-        val eventClass = classifier.getClassIdentity(event)
-        return graph.nodes.find { node ->
-            when (node) {
-                is PrimitiveNode ->
-                    node.eventClass.toString() == eventClass
-                is NodeCluster ->
-                    node.nodes.any { it.eventClass.toString() == eventClass }
-                else -> false
-            }
-        }
     }
 }
