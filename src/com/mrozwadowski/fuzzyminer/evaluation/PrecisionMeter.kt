@@ -10,16 +10,16 @@ class PrecisionMeter(private val graph: Graph, private val classifier: XEventCla
     fun calculate(log: XLog) = calculate(classifyLog(log, classifier))
 
     fun calculate(log: ClassifiedLog): Double {
-        return log.map { trace -> calculateForTrace(trace, log) }.average()
-    }
-
-    private fun calculateForTrace(trace: ClassifiedTrace, log: ClassifiedLog): Double {
-        return (1 until trace.size).map { prefixLength ->
-            val prefix = trace.subList(0, prefixLength)
-            val logSuccessors = successorsFromLog(prefix, log)
-            val graphSuccessors = successorsFromGraph(prefix)
-            (logSuccessors intersect graphSuccessors).size.toDouble() / graphSuccessors.size.toDouble()
-        }.average()
+        val eventPrecisions = log.flatMap { trace ->
+            (1 until trace.size).map { prefixLength ->
+                val prefix = trace.subList(0, prefixLength)
+                val graphSuccessors = successorsFromGraph(prefix)
+                if (graphSuccessors.isEmpty()) return@map 1.0
+                val logSuccessors = successorsFromLog(prefix, log)
+                (logSuccessors intersect graphSuccessors).size.toDouble() / graphSuccessors.size.toDouble()
+            }
+        }
+        return if (eventPrecisions.isEmpty()) 0.0 else eventPrecisions.average()
     }
 
     fun successorsFromLog(prefix: ClassifiedTrace, classifiedLog: ClassifiedLog): Set<String> {
