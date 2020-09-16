@@ -4,11 +4,14 @@ import com.mrozwadowski.fuzzyminer.data.Parameters
 import com.mrozwadowski.fuzzyminer.data.graph.Graph
 import com.mrozwadowski.fuzzyminer.mining.GraphBuilder
 import com.mrozwadowski.fuzzyminer.mining.SimplificationPipeline
+import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsDump
 import com.mrozwadowski.fuzzyminer.mining.metrics.MetricsStore
 import org.deckfour.xes.classification.XEventClass
 import org.deckfour.xes.classification.XEventClasses
 import org.deckfour.xes.classification.XEventClassifier
 import org.deckfour.xes.model.XLog
+import java.io.File
+import java.io.IOException
 
 class XEventClassesExtended(classifier: XEventClassifier): XEventClasses(classifier) {
     fun register(eventClass: XEventClass) {
@@ -52,6 +55,19 @@ class OnlineFuzzyMiner(
         metrics.reset()
         metrics.calculateFromLog(log, eventClasses, -1)
         isGraphStale = true
+    }
+
+    fun load(file: File) {
+        val json = file.readText()
+        val dump = MetricsDump.fromString(json) ?: throw IOException("Failed to parse dumped model!")
+        metrics.loadMetrics(dump)
+        isGraphStale = true
+    }
+
+    fun save(file: File) {
+        val dump = metrics.dumpMetrics()
+        val json = dump.toString()
+        file.writeText(json)
     }
 
     private fun updateGraph() {
